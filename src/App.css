@@ -1,0 +1,696 @@
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  background: #FFFFFF;
+  overflow-x: hidden;
+  display: block;
+  padding: 0;
+  max-width: none;
+  margin: 0;
+}
+
+/* Header & Nav */
+.header {
+  position: relative;
+  width: 1440px;
+  max-width: 100%;
+  margin: 0 auto;
+  height: 120px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 52px;
+}
+
+.utility-exec-title-header {
+  font-weight: 500;
+  font-size: 28px;
+  color: #1B5B7E;
+  flex-shrink: 0;
+  margin-right: 30px;
+}
+
+.nav-line-container {
+  position: relative;
+  flex-grow: 1;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-line {
+  width: 100%;
+  height: 1px;
+  background-color: #1B5B7E;
+  opacity: 0.3;
+}
+
+.nav-active-bar {
+  position: absolute;
+  width: 60px;
+  height: 4px;
+  background-color: #1B5B7E;
+  top: 0;
+  left: 630px;
+  /* Adjust based on OVERVIEW position */
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  margin-left: 20px;
+}
+
+.nav-link {
+  font-weight: 600;
+  font-size: 13px;
+  color: #353535;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.nav-link.active {
+  color: #1B5B7E;
+}
+
+.arrow-icon {
+  font-size: 8px;
+  transform: rotate(180deg);
+  display: inline-block;
+}
+
+/* Hero Section */
+.hero-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  height: 778.54px;
+  min-height: 500px;
+  overflow: visible;
+}
+
+@media (max-width: 1440px) {
+  .hero-wrapper {
+    height: auto;
+    min-height: 60vh;
+    overflow: visible;
+  }
+}
+
+/* Base gradient layer - Rectangle 5789 */
+.gradient-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+.gradient-base {
+  width: 100%;
+  max-width: 1440px;
+  height: 100%;
+  background: linear-gradient(266.64deg, #EFF9FC 57.6%, #C5DDED 96.65%);
+  z-index: 1;
+}
+
+/* Middle gradient layer - Rectangle 5792 */
+.gradient-middle {
+  width: 100%;
+  max-width: 1440px;
+  height: 59.7%;
+  left: 0;
+  top: 40.3%;
+  background: linear-gradient(265.53deg, #F4FCFC 50.52%, #C5DDED 94.88%);
+  z-index: 2;
+}
+
+/* Bottom gradient layer 1 - Rectangle 5793 */
+.gradient-bottom-1 {
+  width: 100%;
+  max-width: 1440px;
+  height: 30.3%;
+  left: 0;
+  top: 69.7%;
+  background: linear-gradient(269.56deg, #EDF6FA 50.72%, #EFF9FA 52.44%, #EBF6F9 56.87%, #C5DDED 98.96%);
+  z-index: 3;
+}
+
+/* Bottom gradient layer 2 - Rectangle 5798 */
+.gradient-bottom-2 {
+  width: 100%;
+  max-width: 1440px;
+  height: 30.3%;
+  left: 0;
+  top: 69.7%;
+  background: linear-gradient(268.73deg, #E9F6FA 50.66%, #ECF5F9 52.4%, #EAF5F9 56.84%, #C5DDED 99.16%);
+  z-index: 4;
+}
+
+/* Water splash overlay gradient - Rectangle 5791 */
+.gradient-water-overlay {
+  width: 55.14%;
+  max-width: 794px;
+  height: 52.5%;
+  left: 44.86%;
+  top: 0;
+  background: linear-gradient(274.9deg, #C2DBEC 5.89%, #F3F9FD 58.9%, #EFF9FC 66.92%, #F0FAFD 67.98%, #EFF9FC 90.97%);
+  z-index: 6;
+}
+
+.hero-content {
+  position: relative;
+  width: 1440px;
+  max-width: 100%;
+  margin: 0 auto;
+  height: 100%;
+  z-index: 10;
+  padding: 100px 52px 0;
+  pointer-events: none;
+}
+
+.hero-content > * {
+  pointer-events: auto;
+}
+
+.brand-name {
+  font-weight: 500;
+  font-size: 64px;
+  color: #1B5B7E;
+  margin-bottom: 20px;
+}
+
+.brand-description {
+  width: 700px;
+  font-size: 24px;
+  line-height: 1.3;
+  color: #1B5B7E;
+  margin-bottom: 60px;
+}
+
+.hero-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 60px;
+}
+
+.bullet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 19px;
+  color: #353535;
+}
+
+.bullet-icon {
+  width: 18px;
+  height: 18px;
+  background-color: #1B5B7E;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.search-bar-container {
+  width: 580px;
+  height: 56px;
+  background: rgba(250, 250, 250, 0.7);
+  border: 1px solid #689EC2;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 25px;
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+  background-color: #1B5B7E;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat center;
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding-left: 15px;
+  font-size: 20px;
+  color: #1B5B7E;
+  outline: none;
+}
+
+.hero-image {
+  position: absolute;
+  width: 55.14%;
+  max-width: 794px;
+  height: 55.1%;
+  max-height: 429.04px;
+  left: 44.86%;
+  top: 44.9%;
+  background: url('/water-splash-ai-generated.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 5;
+  aspect-ratio: 794 / 429.04;
+}
+
+/* Wave detail elements */
+.wave-detail {
+  position: absolute;
+  pointer-events: none;
+  z-index: 8;
+  opacity: 0.9;
+}
+
+/* Rectangle 5794 */
+.wave-detail-1 {
+  width: 114px;
+  height: 52.5px;
+  left: 40.07%;
+  top: 80.7%;
+  background: linear-gradient(84.92deg, #E8F4F8 -1.94%, #EBF6F9 35.05%, #EDF8FA 60.16%, #ECF5F9 72.01%, #ECF5F9 93.31%);
+  filter: blur(1px);
+  border-radius: 4px;
+  transform: scale(1);
+}
+
+/* Rectangle 5795 */
+.wave-detail-2 {
+  width: 118.5px;
+  height: 69.5px;
+  left: 39.97%;
+  top: 83.8%;
+  background: linear-gradient(76.83deg, #EAF5F9 11%, #EAF5F9 40.55%, #EAF5F9 77.58%, #EBF5FB 97.41%);
+  filter: blur(1px);
+  border-radius: 4px;
+  transform: scale(1);
+}
+
+/* Rectangle 5796 */
+.wave-detail-3 {
+  width: 63px;
+  height: 37px;
+  left: 43.89%;
+  top: 84.6%;
+  background: linear-gradient(76.83deg, #EAF5F9 11%, #EAF5F9 40.55%, #EAF5F9 77.58%, #E8F2FB 97.41%);
+  border-radius: 4px;
+  transform: scale(1);
+}
+
+/* Rectangle 5797 */
+.wave-detail-4 {
+  width: 62px;
+  height: 37px;
+  left: 43.96%;
+  top: 87.0%;
+  background: linear-gradient(78.61deg, #EBF5F9 3.21%, #EAF5F9 35.69%, #E1EDF8 79.72%, #D8E9F4 98.2%);
+  filter: blur(1px);
+  border-radius: 4px;
+  transform: scale(1);
+}
+
+/* Rectangle 5799 */
+.wave-detail-5 {
+  width: 63px;
+  height: 39px;
+  left: 44.03%;
+  top: 87.9%;
+  background: linear-gradient(72.97deg, #EBF5F9 2.4%, #EAF5F9 34.23%, #BFDBED 77.37%, #ACD2E9 95.47%);
+  filter: blur(1px);
+  border-radius: 4px;
+  transform: scale(1);
+}
+
+/* Rectangle 5800 */
+.wave-detail-6 {
+  width: 66px;
+  height: 38px;
+  left: 44.03%;
+  top: 89.5%;
+  background: linear-gradient(74.1deg, #C7E0EE 2.33%, #9DC6DF 33.22%, #90BDDB 75.08%, #81B3D6 92.65%);
+  filter: blur(1px);
+  border-radius: 4px;
+  transform: scale(1);
+}
+
+/* Wave Transition */
+.hero-wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ffffff' fill-opacity='1' d='M0,224L80,213.3C160,203,320,181,480,186.7C640,192,800,224,960,224C1120,224,1280,192,1360,176L1440,160L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: 15;
+}
+
+/* Strategic Pillars Section */
+.pillars-section {
+  position: relative;
+  width: 1440px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 80px 52px;
+  z-index: 5;
+  margin-top: -150px;
+  padding-top: 230px;
+}
+
+.pillars-main-title {
+  font-weight: 700;
+  font-size: 24px;
+  text-transform: uppercase;
+  color: #1B5B7E;
+  margin-bottom: 80px;
+}
+
+.pillars-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.pillar-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.pillar-icon-circle {
+  width: 150px;
+  height: 150px;
+  border: 12px solid #689EC2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+  box-shadow: 0 8px 24px rgba(104, 158, 194, 0.2);
+}
+
+.pillar-icon-img {
+  width: 60px;
+  height: 60px;
+  background-color: #1B5B7E;
+}
+
+.pillar-title {
+  font-weight: 700;
+  font-size: 24px;
+  text-transform: uppercase;
+  color: #1B5B7E;
+  margin-bottom: 8px;
+}
+
+.pillar-subtitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1B5B7E;
+  margin-bottom: 15px;
+}
+
+.pillar-description {
+  font-size: 16px;
+  line-height: 1.4;
+  color: #353535;
+  max-width: 320px;
+}
+
+.pillars-footer-text {
+  width: 100%;
+  margin: 100px auto 20px;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 15px;
+  text-align: center;
+  color: #1B5B7E;
+}
+
+@media (max-width: 1440px) {
+
+  .header,
+  .hero-content,
+  .pillars-section {
+    width: 100%;
+  }
+
+  .hero-wrapper {
+    max-width: 100%;
+    height: auto;
+    min-height: 778.54px;
+  }
+
+  .gradient-layer {
+    width: 100%;
+  }
+
+  .gradient-base {
+    height: 100%;
+  }
+
+  .gradient-middle {
+    height: 60%;
+    top: 40%;
+  }
+
+  .gradient-bottom-1,
+  .gradient-bottom-2 {
+    height: 30%;
+    top: 70%;
+  }
+
+  .gradient-water-overlay {
+    width: 55%;
+    height: 52%;
+    left: 45%;
+  }
+
+  .hero-image {
+    width: 55%;
+    height: auto;
+    left: 45%;
+    top: 45%;
+    aspect-ratio: 794 / 429.04;
+  }
+
+  /* Scale wave details proportionally - maintain visibility */
+  .wave-detail-1 {
+    width: 114px;
+    height: 52.5px;
+    left: 35%;
+    transform: scale(1.2);
+  }
+
+  .wave-detail-2 {
+    width: 118.5px;
+    height: 69.5px;
+    left: 34.5%;
+    transform: scale(1.2);
+  }
+
+  .wave-detail-3 {
+    width: 63px;
+    height: 37px;
+    left: 38%;
+    transform: scale(1.2);
+  }
+
+  .wave-detail-4 {
+    width: 62px;
+    height: 37px;
+    left: 38.5%;
+    transform: scale(1.2);
+  }
+
+  .wave-detail-5 {
+    width: 63px;
+    height: 39px;
+    left: 39%;
+    transform: scale(1.2);
+  }
+
+  .wave-detail-6 {
+    width: 66px;
+    height: 38px;
+    left: 39%;
+    transform: scale(1.2);
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-image {
+    width: 60%;
+    right: 0;
+    left: auto;
+  }
+
+  .brand-description {
+    width: 90%;
+  }
+
+  .pillars-grid {
+    flex-direction: column;
+    align-items: center;
+    gap: 60px;
+  }
+
+  /* Adjust wave details for tablet - larger and more visible */
+  .wave-detail-1 {
+    width: 120px;
+    height: 60px;
+    left: 30%;
+    top: 78%;
+    transform: scale(1.3);
+  }
+
+  .wave-detail-2 {
+    width: 130px;
+    height: 80px;
+    left: 29%;
+    top: 81%;
+    transform: scale(1.3);
+  }
+
+  .wave-detail-3 {
+    width: 70px;
+    height: 45px;
+    left: 33%;
+    top: 82%;
+    transform: scale(1.3);
+  }
+
+  .wave-detail-4 {
+    width: 70px;
+    height: 45px;
+    left: 34%;
+    top: 84%;
+    transform: scale(1.3);
+  }
+
+  .wave-detail-5 {
+    width: 70px;
+    height: 48px;
+    left: 34.5%;
+    top: 85%;
+    transform: scale(1.3);
+  }
+
+  .wave-detail-6 {
+    width: 75px;
+    height: 46px;
+    left: 34.5%;
+    top: 86.5%;
+    transform: scale(1.3);
+  }
+}
+
+@media (max-width: 768px) {
+  /* Adjust wave details for mobile - ensure visibility */
+  .wave-detail-1 {
+    width: 100px;
+    height: 50px;
+    left: 25%;
+    top: 75%;
+    transform: scale(1.4);
+  }
+
+  .wave-detail-2 {
+    width: 110px;
+    height: 65px;
+    left: 24%;
+    top: 78%;
+    transform: scale(1.4);
+  }
+
+  .wave-detail-3 {
+    width: 60px;
+    height: 35px;
+    left: 28%;
+    top: 79%;
+    transform: scale(1.4);
+  }
+
+  .wave-detail-4 {
+    width: 60px;
+    height: 35px;
+    left: 29%;
+    top: 81%;
+    transform: scale(1.4);
+  }
+
+  .wave-detail-5 {
+    width: 60px;
+    height: 38px;
+    left: 29.5%;
+    top: 82%;
+    transform: scale(1.4);
+  }
+
+  .wave-detail-6 {
+    width: 65px;
+    height: 36px;
+    left: 29.5%;
+    top: 83.5%;
+    transform: scale(1.4);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Further adjust for small mobile - keep visible */
+  .wave-detail-1 {
+    width: 90px;
+    height: 45px;
+    left: 20%;
+    top: 72%;
+    transform: scale(1.5);
+  }
+
+  .wave-detail-2 {
+    width: 100px;
+    height: 60px;
+    left: 19%;
+    top: 75%;
+    transform: scale(1.5);
+  }
+
+  .wave-detail-3 {
+    width: 55px;
+    height: 32px;
+    left: 23%;
+    top: 76%;
+    transform: scale(1.5);
+  }
+
+  .wave-detail-4 {
+    width: 55px;
+    height: 32px;
+    left: 24%;
+    top: 78%;
+    transform: scale(1.5);
+  }
+
+  .wave-detail-5 {
+    width: 55px;
+    height: 35px;
+    left: 24.5%;
+    top: 79%;
+    transform: scale(1.5);
+  }
+
+  .wave-detail-6 {
+    width: 60px;
+    height: 34px;
+    left: 24.5%;
+    top: 80.5%;
+    transform: scale(1.5);
+  }
+}

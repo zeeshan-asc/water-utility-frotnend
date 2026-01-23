@@ -1,0 +1,513 @@
+.operations-compliance-container {
+    width: 1440px;
+    max-width: 100%;
+    margin: 0 auto;
+    background: linear-gradient(180deg, #F4F8FE 0%, #FFFFFF 100%);
+    position: relative;
+    padding: 20px 50px;
+    overflow-x: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header Section */
+.oc-header {
+    margin-bottom: 20px;
+}
+
+.oc-brand-header {
+    font-family: 'Noto Sans', sans-serif;
+    font-weight: 600;
+    font-size: 35px;
+    line-height: 1.2;
+    color: #1E4A79;
+}
+
+.oc-brand-header small {
+    display: block;
+    font-size: 18px;
+    font-weight: 400;
+    margin-top: 5px;
+}
+
+/* Section Titles */
+.oc-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 25px;
+    font-weight: 700;
+    color: #1B5B7E;
+    margin: 40px 0 20px 0;
+}
+
+/* System Stability KPIs */
+.oc-stability-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.oc-kpi-card {
+    background: #FAFAFA;
+    border-top: 4px solid #1B5B7E;
+    padding: 18px;
+    border-radius: 9px;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.oc-kpi-label {
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 5px;
+}
+
+.oc-kpi-value {
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 23px;
+    font-weight: 700;
+    color: #1B5B7E;
+    margin: 5px 0;
+}
+
+.oc-kpi-target {
+    font-size: 13px;
+    color: #16A34A;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.oc-kpi-target.warning {
+    color: #FD9C46;
+}
+
+.oc-kpi-target.danger {
+    color: #DC2626;
+}
+
+/* Charts Row */
+.oc-charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.oc-chart-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.19);
+}
+
+.oc-chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 15px;
+}
+
+.oc-chart-subtitle {
+    font-size: 12px;
+    color: #1B5B7E;
+    margin-bottom: 10px;
+}
+
+/* Water Quality Section */
+.oc-quality-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.oc-quality-card {
+    background: #FAFAFA;
+    border-top: 4px solid #1B5B7E;
+    padding: 18px;
+    border-radius: 9px;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.oc-quality-metric {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.oc-quality-value {
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 23px;
+    font-weight: 700;
+    color: #1B5B7E;
+    margin: 5px 0;
+}
+
+.oc-quality-status {
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.oc-quality-status.safe {
+    color: #16A34A;
+}
+
+.oc-quality-status.warning {
+    color: #FD9C46;
+}
+
+.oc-quality-status.critical {
+    color: #DC2626;
+}
+
+/* Compliance Section */
+.oc-compliance-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.oc-compliance-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.oc-compliance-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+}
+
+.oc-compliance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.oc-compliance-bar {
+    flex: 1;
+    height: 11px;
+    background: #F2F2F2;
+    border-radius: 19px;
+    margin: 0 15px;
+    overflow: hidden;
+}
+
+.oc-compliance-fill {
+    height: 100%;
+    border-radius: 16px;
+}
+
+.oc-compliance-fill.green {
+    background: #16A34A;
+}
+
+.oc-compliance-fill.orange {
+    background: #FD9C46;
+}
+
+/* Heatmap Table */
+.oc-heatmap-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.oc-heatmap-table th {
+    font-size: 12px;
+    font-weight: 700;
+    color: #606060;
+    padding: 10px;
+    text-align: center;
+}
+
+.oc-heatmap-table td {
+    padding: 10px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.oc-heatmap-cell {
+    width: 36px;
+    height: 36px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
+}
+
+.oc-heatmap-cell.safe {
+    background: #16A34A;
+    color: white;
+}
+
+.oc-heatmap-cell.warning {
+    background: #C18E01;
+    color: white;
+}
+
+.oc-heatmap-cell.critical {
+    background: #DC2626;
+    color: white;
+}
+
+.oc-heatmap-label {
+    font-size: 9px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+/* Compliance Score Gauge */
+.oc-gauge-container {
+    position: relative;
+    width: 135px;
+    height: 135px;
+    margin: 20px auto;
+}
+
+.oc-gauge-score {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.oc-gauge-score-value {
+    font-size: 26px;
+    font-weight: 600;
+    color: #1B5B7E;
+}
+
+.oc-gauge-score-label {
+    font-size: 9px;
+    color: #073356;
+    margin-top: 5px;
+}
+
+/* Predictive Calendar */
+.oc-calendar-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.oc-calendar-item {
+    background: #FAFAFA;
+    border-left: 4px solid #1B5B7E;
+    padding: 18px;
+    border-radius: 0 7px 7px 0;
+    box-shadow: inset 3px 3px 7px rgba(0, 0, 0, 0.05);
+}
+
+.oc-calendar-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 5px;
+}
+
+.oc-calendar-due {
+    font-size: 10px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+}
+
+.oc-calendar-progress {
+    height: 11px;
+    background: #F2F2F2;
+    border-radius: 19px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.oc-calendar-progress-fill {
+    height: 100%;
+    background: #689EC2;
+    border-radius: 16px;
+}
+
+.oc-risk-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 24px;
+    font-size: 8px;
+    font-weight: 600;
+    color: white;
+    margin-top: 5px;
+}
+
+.oc-risk-badge.low {
+    background: #16A34A;
+}
+
+.oc-risk-badge.medium {
+    background: #EA8022;
+}
+
+.oc-risk-badge.high {
+    background: #DC2626;
+}
+
+.oc-status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 24px;
+    font-size: 8px;
+    font-weight: 600;
+    border: 1px solid;
+    margin-top: 10px;
+}
+
+.oc-status-badge.on-track {
+    background: rgba(30, 74, 121, 0.1);
+    border-color: #1E4A79;
+    color: #1E4A79;
+}
+
+.oc-status-badge.at-risk {
+    background: rgba(234, 88, 12, 0.1);
+    border-color: #EA580C;
+    color: #EA580C;
+}
+
+/* Lab Readiness */
+.oc-lab-grid {
+    display: grid;
+    grid-template-columns: 174px repeat(3, 1fr) 324px;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.oc-lab-card {
+    background: #FAFAFA;
+    border-top: 4px solid #1B5B7E;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    text-align: center;
+}
+
+.oc-lab-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1B5B7E;
+    margin-bottom: 10px;
+}
+
+.oc-lab-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1B5B7E;
+    margin: 10px 0;
+}
+
+.oc-lab-label {
+    font-size: 15px;
+    color: #1B5B7E;
+}
+
+.oc-lab-gauge {
+    position: relative;
+    width: 210px;
+    height: 200px;
+    margin: 0 auto;
+}
+
+/* Sampling Progress */
+.oc-sampling-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.oc-sampling-card {
+    background: #FAFAFA;
+    border-left: 4px solid #1B5B7E;
+    padding: 20px;
+    border-radius: 0 7px 7px 0;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.oc-sampling-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+}
+
+.oc-sampling-detail {
+    font-size: 10px;
+    color: #1B5B7E;
+    margin-bottom: 10px;
+}
+
+.oc-completion-badge {
+    display: inline-block;
+    padding: 6px 15px;
+    border-radius: 27px;
+    font-size: 10px;
+    font-weight: 600;
+    border: 1px solid;
+    float: right;
+}
+
+.oc-completion-badge.complete {
+    background: rgba(22, 163, 74, 0.1);
+    border-color: #16A34A;
+    color: #16A34A;
+}
+
+.oc-completion-badge.in-progress {
+    background: rgba(253, 156, 70, 0.1);
+    border-color: #FD9C46;
+    color: #FD9C46;
+}
+
+.oc-completion-badge.critical {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: #DC2626;
+    color: #DC2626;
+}
+
+.oc-ai-alert {
+    background: #FDEDD1;
+    border: 0.3px solid #DC2626;
+    border-radius: 2px;
+    padding: 5px 10px;
+    margin-top: 10px;
+    font-size: 8px;
+    color: #535353;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.oc-ai-summary {
+    border: 1px solid #589AC7;
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.oc-ai-summary-text {
+    font-size: 8px;
+    font-weight: 700;
+    color: #1B5B7E;
+    line-height: 1.5;
+}

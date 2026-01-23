@@ -1,0 +1,425 @@
+import React from 'react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
+import { AlertCircle, CheckCircle, Activity } from 'lucide-react';
+import './OperationsCompliance.css';
+
+const systemReliabilityData = [
+    { month: 'Jan', uptime: 99.7, incidents: 3 },
+    { month: 'Feb', uptime: 99.4, incidents: 5 },
+    { month: 'Mar', uptime: 99.1, incidents: 8 },
+    { month: 'Apr', uptime: 98.8, incidents: 13 },
+    { month: 'May', uptime: 99.1, incidents: 11 },
+    { month: 'Jun', uptime: 99.7, incidents: 6 },
+];
+
+const pipeAgeData = [
+    { age: '0-10', miles: 400 },
+    { age: '10-20', miles: 350 },
+    { age: '20-30', miles: 290 },
+    { age: '30-40', miles: 240 },
+    { age: '50-60', miles: 180 },
+    { age: '60+', miles: 110 },
+];
+
+const nrwData = [
+    { month: 'Jan', loss: 4.1, targeted: 4.8 },
+    { month: 'Feb', loss: 6.2, targeted: 8.0 },
+    { month: 'Mar', loss: 5.5, targeted: 7.5 },
+    { month: 'Apr', loss: 4.2, targeted: 8.4 },
+    { month: 'May', loss: 8.6, targeted: 10.2 },
+];
+
+const labThroughputData = [
+    { month: 'Jan', actual: 4100, predicted: 4800 },
+    { month: 'Feb', actual: 6400, predicted: 8000 },
+    { month: 'Mar', actual: 5600, predicted: 7200 },
+    { month: 'Apr', actual: 4300, predicted: 8500 },
+    { month: 'May', actual: 8800, predicted: 10400 },
+    { month: 'Jun', actual: 9200, predicted: 10600 },
+    { month: 'Jul', actual: null, predicted: 11200 },
+    { month: 'Aug', actual: null, predicted: 11200 },
+];
+
+const OperationsCompliance = () => {
+    return (
+        <div className="operations-compliance-container">
+            {/* System Stability & Maintenance Outlook */}
+            <h2 className="oc-section-title">
+                <Activity size={25} />
+                System Stability & Maintenance Outlook
+            </h2>
+
+            <div className="oc-stability-grid">
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">System Uptime</div>
+                    <div className="oc-kpi-value">99.7%</div>
+                    <div className="oc-kpi-target">
+                        <CheckCircle size={15} />
+                        Target: 99.5%
+                    </div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">Water Loss Rate</div>
+                    <div className="oc-kpi-value">5.2%</div>
+                    <div className="oc-kpi-target">Below 8% target</div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">Treatment Capacity</div>
+                    <div className="oc-kpi-value">85%</div>
+                    <div className="oc-kpi-target warning">Target: &lt;80%</div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">Pipe Breaks/1000mi</div>
+                    <div className="oc-kpi-value">8.2</div>
+                    <div className="oc-kpi-target danger">Target: &lt;5</div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">Customer Response Time</div>
+                    <div className="oc-kpi-value">2.1 hrs</div>
+                    <div className="oc-kpi-target">
+                        <CheckCircle size={15} />
+                        Target: &lt;4 hrs
+                    </div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">Asset Condition Index</div>
+                    <div className="oc-kpi-value">65%</div>
+                    <div className="oc-kpi-target warning">Target: &gt;70%</div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">Pump Efficiency</div>
+                    <div className="oc-kpi-value">96.2%</div>
+                    <div className="oc-kpi-target">Optimal Performance</div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">System Status</div>
+                    <div className="oc-kpi-value">Operational</div>
+                    <div className="oc-kpi-target">99.8% uptime</div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">Active Incidents</div>
+                    <div className="oc-kpi-value">3</div>
+                    <div className="oc-kpi-target warning">2 in progress</div>
+                </div>
+
+                <div className="oc-kpi-card">
+                    <div className="oc-kpi-label">Unplanned Incidents</div>
+                    <div className="oc-kpi-value">13</div>
+                    <div className="oc-kpi-target warning">YTD - Trending</div>
+                </div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="oc-charts-row">
+                <div className="oc-chart-card">
+                    <div className="oc-chart-title">System Reliability Trend - Uptime vs Incidents</div>
+                    <div style={{ width: '100%', height: 200 }}>
+                        <ResponsiveContainer>
+                            <LineChart data={systemReliabilityData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="month" fontSize={11} />
+                                <YAxis yAxisId="left" fontSize={10} domain={[98.5, 100]} />
+                                <YAxis yAxisId="right" orientation="right" fontSize={10} />
+                                <Tooltip />
+                                <Legend fontSize={10} />
+                                <Line yAxisId="left" type="monotone" dataKey="uptime" stroke="#FD9C46" strokeWidth={2} name="System Uptime %" />
+                                <Bar yAxisId="right" dataKey="incidents" fill="#1B5B7E" name="Incidents" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="oc-chart-card">
+                    <div className="oc-chart-title">Non-Revenue Water Trend</div>
+                    <div className="oc-chart-subtitle">AI-driven insights into unbilled, lost, or leaked water</div>
+                    <div style={{ width: '100%', height: 140 }}>
+                        <ResponsiveContainer>
+                            <BarChart data={nrwData} layout="horizontal">
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis type="number" fontSize={10} />
+                                <YAxis dataKey="month" type="category" fontSize={9} />
+                                <Tooltip />
+                                <Bar dataKey="loss" fill="#1B5B7E" name="Loss" />
+                                <Bar dataKey="targeted" fill="#689EC2" name="Targeted" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="oc-ai-alert">
+                        <AlertCircle size={10} color="#DC2626" />
+                        Targeted level exceeded by 32% in May.
+                    </div>
+                </div>
+
+                <div className="oc-chart-card">
+                    <div className="oc-chart-title">Infrastructure Renewal View</div>
+                    <div className="oc-chart-subtitle">Pipe Miles by Age + Cumulative Exposure</div>
+                    <div style={{ width: '100%', height: 200 }}>
+                        <ResponsiveContainer>
+                            <BarChart data={pipeAgeData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="age" fontSize={10} />
+                                <YAxis fontSize={10} />
+                                <Tooltip />
+                                <Bar dataKey="miles" fill="#1B5B7E" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            </div>
+
+            {/* Water Quality & Regulatory Compliance */}
+            <h2 className="oc-section-title">
+                <Activity size={25} />
+                Water Quality & Regulatory Compliance
+            </h2>
+
+            <div className="oc-quality-grid">
+                <div className="oc-quality-card">
+                    <div className="oc-quality-metric">Chlorine Residual</div>
+                    <div className="oc-quality-value">0.8 mg/L</div>
+                    <div className="oc-quality-status safe">Target: 0.5-1.0 mg/L</div>
+                </div>
+
+                <div className="oc-quality-card">
+                    <div className="oc-quality-metric">Turbidity</div>
+                    <div className="oc-quality-value">0.12 NTU</div>
+                    <div className="oc-quality-status safe">Limit: &lt;0.5 NTU</div>
+                </div>
+
+                <div className="oc-quality-card">
+                    <div className="oc-quality-metric">PFAS Levels</div>
+                    <div className="oc-quality-value">78 ppt</div>
+                    <div className="oc-quality-status critical">Exceeds EPA limit (70 ppt)</div>
+                </div>
+            </div>
+
+            {/* Compliance & Heatmap Row */}
+            <div className="oc-compliance-row">
+                <div className="oc-compliance-card">
+                    <div className="oc-compliance-title">Compliance to Regulatory Standards</div>
+                    <div className="oc-chart-subtitle">Current status of all major compliance requirements</div>
+
+                    <div style={{ marginTop: '20px' }}>
+                        {[
+                            { label: 'Water Quality Standards', value: 100, status: 'green' },
+                            { label: 'EPA Requirements', value: 98, status: 'orange' },
+                            { label: 'Safe Drinking Water Act', value: 100, status: 'green' },
+                            { label: 'Local Regulations', value: 85, status: 'orange' },
+                            { label: 'System Maintenance', value: 92, status: 'orange' },
+                        ].map((item, i) => (
+                            <div key={i} className="oc-compliance-item">
+                                <CheckCircle size={14} color={item.status === 'green' ? '#16A34A' : '#FD9C46'} />
+                                <strong style={{ width: '180px', fontSize: '12px' }}>{item.label}</strong>
+                                <div className="oc-compliance-bar">
+                                    <div className={`oc-compliance-fill ${item.status}`} style={{ width: `${item.value}%` }}></div>
+                                </div>
+                                <span style={{ fontSize: '12px', fontWeight: '700' }}>{item.value}%</span>
+                            </div>
+                        ))}
+                    </div>
+                    <p style={{ fontSize: '11px', fontStyle: 'italic', color: '#1B5B7E', marginTop: '15px' }}>
+                        2 compliance alerts requiring attention. PFAS levels at 3 of 5 monitoring stations exceed EPA thresholds.
+                    </p>
+                </div>
+
+                <div className="oc-compliance-card">
+                    <div className="oc-compliance-title">Water Quality Heatmap by Stations</div>
+                    <div className="oc-chart-subtitle">Monitoring station results and compliance status</div>
+
+                    <table className="oc-heatmap-table">
+                        <thead>
+                            <tr>
+                                <th>Station</th>
+                                <th>Chlorine<br />(0.5-1.0)</th>
+                                <th>Turbidity<br />(&lt;0.5 NTU)</th>
+                                <th>PFAS<br />(&lt;70 ppt)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Treatment Plant 1</td>
+                                <td>
+                                    <div className="oc-heatmap-cell safe">0.8</div>
+                                    <div className="oc-heatmap-label">Safe</div>
+                                </td>
+                                <td>
+                                    <div className="oc-heatmap-cell safe">0.12</div>
+                                    <div className="oc-heatmap-label">Safe</div>
+                                </td>
+                                <td>
+                                    <div className="oc-heatmap-cell safe">42</div>
+                                    <div className="oc-heatmap-label">Safe</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Downtown Station</td>
+                                <td>
+                                    <div className="oc-heatmap-cell warning">0.65</div>
+                                    <div className="oc-heatmap-label">Warning</div>
+                                </td>
+                                <td>
+                                    <div className="oc-heatmap-cell warning">0.28</div>
+                                    <div className="oc-heatmap-label">Warning</div>
+                                </td>
+                                <td>
+                                    <div className="oc-heatmap-cell warning">58</div>
+                                    <div className="oc-heatmap-label">Warning</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>North Zone</td>
+                                <td>
+                                    <div className="oc-heatmap-cell safe">0.9</div>
+                                    <div className="oc-heatmap-label">Safe</div>
+                                </td>
+                                <td>
+                                    <div className="oc-heatmap-cell safe">0.09</div>
+                                    <div className="oc-heatmap-label">Safe</div>
+                                </td>
+                                <td>
+                                    <div className="oc-heatmap-cell critical">78</div>
+                                    <div className="oc-heatmap-label">Critical</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Predictive Compliance Calendar */}
+            <div className="oc-chart-card" style={{ marginBottom: '30px' }}>
+                <div className="oc-compliance-title">Predictive Compliance Calendar & Progress Tracker</div>
+
+                <div className="oc-calendar-grid">
+                    {[
+                        { title: 'Routine Bacterial Testing', due: 'Dec 28, 2024', days: 4, progress: 98, risk: 'low', status: 'on-track' },
+                        { title: 'PFAS Monitoring (Quarterly)', due: 'Dec 31, 2024', days: 7, progress: 92, risk: 'medium', status: 'on-track' },
+                        { title: 'Disinfection Byproducts (DBP)', due: 'Jan 4, 2025', days: 11, progress: 78, risk: 'high', status: 'at-risk' },
+                        { title: 'Cross-Connection Testing', due: 'Jan 15, 2025', days: 22, progress: 45, risk: 'high', status: 'at-risk' },
+                    ].map((item, i) => (
+                        <div key={i} className="oc-calendar-item">
+                            <div className="oc-calendar-title">
+                                {item.title}
+                                <span className={`oc-risk-badge ${item.risk}`}>{item.risk === 'low' ? 'Low Risk' : item.risk === 'medium' ? 'Medium Risk' : 'High Risk'}</span>
+                            </div>
+                            <div className="oc-calendar-due">Due Date: {item.due}</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: '700', color: '#1B5B7E', marginTop: '10px' }}>
+                                <span>Days</span>
+                                <span>{item.days}</span>
+                            </div>
+                            <div style={{ fontSize: '10px', marginTop: '5px' }}>Completion Progress</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div className="oc-calendar-progress" style={{ flex: 1 }}>
+                                    <div className="oc-calendar-progress-fill" style={{ width: `${item.progress}%` }}></div>
+                                </div>
+                                <span style={{ marginLeft: '10px', fontSize: '12px', fontWeight: '600' }}>{item.progress}%</span>
+                            </div>
+                            <div style={{ fontSize: '10px', fontWeight: '700', color: '#1B5B7E', marginTop: '10px', textAlign: 'right' }}>
+                                Decision Support: {item.progress > 90 ? 'Likely to meet deadline' : 'Recommend acceleration of sampling'}
+                            </div>
+                            <span className={`oc-status-badge ${item.status}`}>{item.status === 'on-track' ? 'On Track' : 'At Risk'}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Lab Operational Readiness */}
+            <h2 className="oc-section-title">
+                <Activity size={25} />
+                Lab Operational Readiness
+            </h2>
+
+            <div className="oc-lab-grid">
+                <div className="oc-lab-card">
+                    <div className="oc-lab-title">Program Samples Collected</div>
+                    <div className="oc-lab-value">34,120</div>
+                    <div className="oc-lab-label">Samples</div>
+                </div>
+
+                <div className="oc-lab-card">
+                    <div className="oc-lab-title">YTD Water Quality Tests Completed</div>
+                    <div className="oc-lab-value">7520</div>
+                    <div className="oc-lab-label">Tests Completed</div>
+                    <div className="oc-lab-label">83.5% of Annual Target</div>
+                </div>
+
+                <div className="oc-lab-card">
+                    <div className="oc-lab-title">YTD Contaminant Exceedances Identified</div>
+                    <div className="oc-lab-value">38</div>
+                    <div className="oc-lab-label">Exceedances Detected</div>
+                    <div className="oc-lab-label">Threshold: &lt;50 per year</div>
+                </div>
+
+                <div className="oc-lab-card">
+                    <div className="oc-lab-title">Sampling Compliance Rate</div>
+                    <div className="oc-lab-value">98.2%</div>
+                    <div className="oc-lab-label">Compliance Rate</div>
+                </div>
+
+                <div className="oc-lab-card">
+                    <div className="oc-lab-title"></div>
+                    <div className="oc-lab-value">12.3%</div>
+                    <div className="oc-lab-label">Retest or Investigation Required</div>
+                </div>
+            </div>
+
+            {/* Sampling Status Progress */}
+            <div className="oc-sampling-row">
+                <div className="oc-sampling-card">
+                    <div className="oc-sampling-title">Routine Sampling</div>
+                    <div className="oc-sampling-detail">156 of 159 samples submitted on time</div>
+                    <span className="oc-completion-badge complete">98% Complete</span>
+                    <div className="oc-calendar-progress" style={{ marginTop: '15px' }}>
+                        <div className="oc-calendar-progress-fill" style={{ width: '98%', background: '#16A34A' }}></div>
+                    </div>
+                </div>
+
+                <div className="oc-sampling-card">
+                    <div className="oc-sampling-title">PFAS Testing</div>
+                    <div className="oc-sampling-detail">23 of 25 stations sampled (2 pending)</div>
+                    <span className="oc-completion-badge in-progress">92% Complete</span>
+                    <div className="oc-calendar-progress" style={{ marginTop: '15px' }}>
+                        <div className="oc-calendar-progress-fill" style={{ width: '92%', background: '#FD9C46' }}></div>
+                    </div>
+                </div>
+
+                <div className="oc-sampling-card">
+                    <div className="oc-sampling-title">DBP Monitoring</div>
+                    <div className="oc-sampling-detail">1 of 9 samples submitted (deadline: 2 days)</div>
+                    <span className="oc-completion-badge critical">11% Complete</span>
+                    <div className="oc-calendar-progress" style={{ marginTop: '15px' }}>
+                        <div className="oc-calendar-progress-fill" style={{ width: '11%', background: '#DC2626' }}></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Lab Throughput Chart */}
+            <div className="oc-chart-card" style={{ marginBottom: '30px' }}>
+                <div className="oc-compliance-title">Lab Throughput & Sample Volume Trend</div>
+                <div style={{ width: '100%', height: 220 }}>
+                    <ResponsiveContainer>
+                        <LineChart data={labThroughputData}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="month" fontSize={12} />
+                            <YAxis fontSize={10} />
+                            <Tooltip />
+                            <Legend fontSize={10} />
+                            <Line type="monotone" dataKey="actual" stroke="#1B5B7E" strokeWidth={3} name="Actual" />
+                            <Line type="monotone" dataKey="predicted" stroke="#FD9C46" strokeWidth={3} strokeDasharray="5 5" name="AI Predicted" />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default OperationsCompliance;
