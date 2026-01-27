@@ -213,6 +213,59 @@
     font-weight: 700;
 }
 
+.fh-ai-response-box table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #FFFFFF;
+    font-size: 13px;
+    margin: 0;
+}
+
+.fh-ai-response-box table thead tr {
+    background: #F9FAFB;
+    border-bottom: 2px solid #E5E7EB;
+}
+
+.fh-ai-response-box table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #1B5B7E;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.fh-ai-response-box table tbody tr {
+    border-bottom: 1px solid #F3F4F6;
+    transition: background-color 0.2s;
+}
+
+.fh-ai-response-box table tbody tr:hover {
+    background: #F9FAFB;
+}
+
+.fh-ai-response-box table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.fh-ai-response-box table td {
+    padding: 12px 15px;
+    color: #374151;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.fh-ai-response-box details summary {
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+}
+
+.fh-ai-response-box details summary::-webkit-details-marker {
+    display: none;
+}
+
 /* Section Headers */
 .fh-section-header {
     margin: 40px 0 20px;
@@ -551,13 +604,18 @@
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     border-radius: 5.9px;
     padding: 18px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .fh-scenario-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .fh-scenario-title {
@@ -575,7 +633,8 @@
     display: flex;
     gap: 0;
     box-sizing: border-box;
-    width: 266px;
+    width: 100%;
+    max-width: 266px;
     height: 25.74px;
     background: #FAFAFA;
     border: 0.357527px solid #689EC2;
@@ -612,7 +671,14 @@
 }
 
 .fh-scenario-input {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
+}
+
+.fh-scenario-inputs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 20px;
 }
 
 .fh-input-label-row {
@@ -623,9 +689,9 @@
     font-style: normal;
     font-weight: 700;
     font-size: 10px;
-    line-height: 33px;
+    line-height: 1.5;
     color: #111827;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .fh-input-value {
@@ -672,8 +738,9 @@
     font-style: normal;
     font-weight: 400;
     font-size: 10px;
-    line-height: 33px;
-    margin-top: 4px;
+    line-height: 1.5;
+    margin-top: 6px;
+    padding-left: 2px;
 }
 
 .fh-impact-text.positive {
@@ -688,7 +755,11 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 0;
+}
+
+.fh-scenario-input:has(.fh-scenario-name-input) {
+    margin-bottom: 20px;
 }
 
 .fh-scenario-name-input {
@@ -728,13 +799,13 @@
 
 .fh-scenario-impact-box {
     box-sizing: border-box;
-    width: 282px;
+    width: 100%;
     min-height: 152px;
     background: #CCE1EF;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
     border-radius: 5.9px;
-    padding: 12px 10px;
-    margin: 15px 0;
+    padding: 12px 15px;
+    margin: 15px 0 20px 0;
 }
 
 .fh-impact-header {
@@ -756,9 +827,10 @@
     font-style: normal;
     font-weight: 700;
     font-size: 10px;
-    line-height: 33px;
+    line-height: 28px;
     color: #111827;
-    margin: 0;
+    margin: 4px 0;
+    padding: 2px 0;
 }
 
 .fh-impact-row span:last-child {
@@ -780,12 +852,13 @@
 
 .fh-key-insights-box {
     box-sizing: border-box;
-    width: 282px;
+    width: 100%;
     min-height: 141px;
     background: #E8F5FD;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
     border-radius: 5.9px;
-    padding: 12px 10px;
+    padding: 12px 15px;
+    margin-top: auto;
 }
 
 .fh-insights-header {
@@ -801,17 +874,26 @@
 
 .fh-insight-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 9px;
     font-family: 'Noto Sans';
     font-style: normal;
     font-weight: 700;
     font-size: 10px;
-    line-height: 33px;
+    line-height: 1.4;
     color: #079941;
-    margin: 0;
+    margin: 6px 0;
     position: relative;
     padding-left: 16px;
+}
+
+.fh-insight-item.blue {
+    color: #1B5B7E;
+}
+
+.fh-insight-item svg {
+    flex-shrink: 0;
+    margin-top: 2px;
 }
 
 .fh-insight-item:not(.blue)::before {
@@ -1121,6 +1203,17 @@
         grid-column: 1 / -1;
         grid-row: auto;
         /* Reset row span */
+    }
+
+    .fh-scenario-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .fh-scenario-tabs {
+        width: 100%;
+        max-width: 100%;
+        margin-top: 10px;
     }
 
     .fh-intelligence-grid,

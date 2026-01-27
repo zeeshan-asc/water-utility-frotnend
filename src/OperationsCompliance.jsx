@@ -1,6 +1,13 @@
 import React from 'react';
+<<<<<<< Updated upstream
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
 import { AlertCircle, CheckCircle, Activity, Search, TrendingUp, Settings, Droplet } from 'lucide-react';
+=======
+import { LineChart, Line, BarChart, Bar, AreaChart, Area, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
+import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
+import { AlertCircle, CheckCircle, Activity, Search, TrendingUp, TrendingDown, Settings, Droplet } from 'lucide-react';
+import PageNavigation from './PageNavigation';
+>>>>>>> Stashed changes
 import './OperationsCompliance.css';
 
 // Data
@@ -583,35 +590,30 @@ const OperationsCompliance = () => {
                 <div className="oc-lab-card">
                     <div className="oc-lab-card-title">YTD Water Quality Tests Completed</div>
                     <div className="oc-gauge-container">
-                        <ResponsiveContainer width="100%" height={140}>
-                            <PieChart>
-                                <Pie
-                                    data={[{ value: 7520 }, { value: 9000 - 7520 }]}
-                                    cx="50%"
-                                    cy="80%"
-                                    startAngle={180}
-                                    endAngle={0}
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={0}
-                                    dataKey="value"
-                                    stroke="none"
-                                >
-                                    <Cell fill="#689EC2" />
-                                    <Cell fill="#E5E7EB" />
-                                </Pie>
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <div className="oc-gauge-overlay">
-                            <div className="oc-gauge-label">Tests Completed</div>
-                        </div>
-                        <div className="oc-gauge-value-container">
+                        <Gauge
+                            width={300}
+                            height={180}
+                            value={7520}
+                            valueMin={0}
+                            valueMax={9000}
+                            startAngle={-90}
+                            endAngle={90}
+                            sx={{
+                                [`& .${gaugeClasses.valueText}`]: {
+                                    display: 'none',
+                                },
+                                [`& .${gaugeClasses.valueArc}`]: {
+                                    fill: '#6fa3c8',
+                                },
+                                [`& .${gaugeClasses.referenceArc}`]: {
+                                    fill: '#e5e5e5',
+                                },
+                            }}
+                        />
+                        <div className="oc-gauge-text-container">
                             <div className="oc-gauge-value">7520</div>
                             <div className="oc-gauge-subtext">83.5% of Annual Target</div>
-                        </div>
-                        <div className="oc-gauge-minmax">
-                            <span>0</span>
-                            <span>9,000</span>
+                            <div className="oc-gauge-target">Target: 9,000</div>
                         </div>
                     </div>
                 </div>
@@ -619,35 +621,30 @@ const OperationsCompliance = () => {
                 <div className="oc-lab-card">
                     <div className="oc-lab-card-title">YTD Contaminant Exceedances Identified</div>
                     <div className="oc-gauge-container">
-                        <ResponsiveContainer width="100%" height={140}>
-                            <PieChart>
-                                <Pie
-                                    data={[{ value: 38 }, { value: 50 - 38 }]}
-                                    cx="50%"
-                                    cy="80%"
-                                    startAngle={180}
-                                    endAngle={0}
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={0}
-                                    dataKey="value"
-                                    stroke="none"
-                                >
-                                    <Cell fill="#689EC2" />
-                                    <Cell fill="#E5E7EB" />
-                                </Pie>
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <div className="oc-gauge-overlay">
-                            <div className="oc-gauge-label">Exceedances Detected</div>
-                        </div>
-                        <div className="oc-gauge-value-container">
+                        <Gauge
+                            width={300}
+                            height={180}
+                            value={38}
+                            valueMin={0}
+                            valueMax={50}
+                            startAngle={-90}
+                            endAngle={90}
+                            sx={{
+                                [`& .${gaugeClasses.valueText}`]: {
+                                    display: 'none',
+                                },
+                                [`& .${gaugeClasses.valueArc}`]: {
+                                    fill: '#6fa3c8',
+                                },
+                                [`& .${gaugeClasses.referenceArc}`]: {
+                                    fill: '#e5e5e5',
+                                },
+                            }}
+                        />
+                        <div className="oc-gauge-text-container">
                             <div className="oc-gauge-value">38</div>
-                            <div className="oc-gauge-subtext">Based on regulatory and safety thresholds</div>
-                        </div>
-                        <div className="oc-gauge-minmax">
-                            <span>0</span>
-                            <span>&lt;50</span>
+                            <div className="oc-gauge-subtext">Threshold: &lt;50 per year</div>
+                            <div className="oc-gauge-footer">Based on regulatory and internal safety thresholds</div>
                         </div>
                     </div>
                 </div>

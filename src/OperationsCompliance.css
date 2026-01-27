@@ -586,32 +586,49 @@
     .oc-lab-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .oc-lab-card {
+        height: auto;
+        min-height: 228px;
+    }
 }
 
 @media (min-width: 1024px) {
     .oc-lab-grid {
         grid-template-columns: 1fr 2.3fr 2.3fr 1.8fr;
-        height: 228px;
+        align-items: start;
+    }
+
+    .oc-lab-card {
+        height: 227.99px;
+        min-height: 227.99px;
+        max-height: 227.99px;
+        overflow: hidden;
+        width: 400.14px;
     }
 
     .oc-gauge-container {
-        min-height: 240px;
+        width: 209.38px;
+        min-height: 200.07px;
+        height: 200.07px;
+        max-height: 200.07px;
+        top: 58.16px;
     }
 
     .oc-gauge-overlay {
-        top: 30%;
+        top: 55.18px;
     }
 
     .oc-gauge-value-container {
-        top: 72%;
+        top: 76.12px;
     }
 
     .oc-gauge-minmax {
-        bottom: 40px;
+        bottom: 36.16px;
     }
 
     .oc-gauge-footer {
-        bottom: 5px;
+        bottom: 6px;
     }
 
     .oc-gauge-label {
@@ -689,6 +706,7 @@
     .oc-lab-card {
         padding: 12px;
         width: 100%;
+        min-height: auto;
     }
 
     .oc-lab-card-title {
@@ -758,6 +776,20 @@
         padding: 0 5px;
         line-height: 1.3;
     }
+
+    .oc-gauge-arc-label {
+        font-size: 9px;
+    }
+
+    .oc-gauge-arc-label-right {
+        top: 22%;
+        right: 18%;
+    }
+
+    .oc-gauge-arc-label-left {
+        top: 22%;
+        left: 18%;
+    }
 }
 
 @media (max-width: 480px) {
@@ -794,6 +826,20 @@
     .oc-gauge-footer {
         bottom: 5px;
         font-size: 7px;
+    }
+
+    .oc-gauge-arc-label {
+        font-size: 8px;
+    }
+
+    .oc-gauge-arc-label-right {
+        top: 22%;
+        right: 18%;
+    }
+
+    .oc-gauge-arc-label-left {
+        top: 22%;
+        left: 18%;
     }
 
     .oc-gauge-value {
@@ -854,17 +900,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    min-height: 350px;
+    box-sizing: border-box;
+    overflow: visible;
 }
 
 .oc-lab-card-title {
     font-family: 'Segoe UI', sans-serif;
     font-weight: 700;
     font-size: 16px;
-    line-height: 1.3;
+    line-height: 21px;
     text-align: center;
     color: #1B5B7E;
-    margin-bottom: 20px;
-    max-width: 90%;
+    margin: 0 0 15px 0;
+    padding: 0;
+    width: 100%;
 }
 
 .oc-lab-inner-box {
@@ -922,13 +973,34 @@
 .oc-gauge-container {
     position: relative;
     width: 100%;
-    margin-top: -10px;
-    min-height: 240px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding-bottom: 10px;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.oc-gauge-container .MuiGauge-root {
+    width: 100% !important;
+    max-width: 300px;
+    height: 180px !important;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .oc-gauge-container .MuiGauge-root {
+        max-width: 250px;
+        height: 150px !important;
+    }
+}
+
+.oc-gauge-text-container {
+    text-align: center;
+    margin-top: 8px;
+    width: 100%;
+    padding: 0 15px;
 }
 
 .oc-gauge-overlay {
@@ -944,41 +1016,60 @@
 
 .oc-gauge-label {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 13.9583px;
+    font-weight: 400;
     color: #1B5B7E;
     margin-bottom: 0;
     white-space: nowrap;
+    line-height: 19px;
 }
 
 .oc-gauge-value-container {
     position: absolute;
-    top: 72%;
+    top: 65%;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
     width: 100%;
     z-index: 2;
     pointer-events: none;
+    padding: 0 10px;
 }
 
 .oc-gauge-value {
     font-family: 'Segoe UI', sans-serif;
     font-weight: 700;
-    font-size: 28px;
+    font-size: 30px;
     color: #1B5B7E;
     line-height: 1.2;
-    margin-bottom: 6px;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    text-align: center;
 }
 
 .oc-gauge-subtext {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 10px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1B5B7E;
+    margin: 4px 0 0 0;
+    padding: 0;
+    line-height: 1.5;
+    text-align: center;
+    width: 100%;
+}
+
+.oc-gauge-target {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
     color: #6B7280;
-    margin-top: 0;
-    margin-bottom: 0;
-    line-height: 1.4;
-    padding: 0 10px;
+    margin: 4px 0 0 0;
+    padding: 0;
+    line-height: 1.5;
+    text-align: center;
+    width: 100%;
 }
 
 .oc-gauge-subtext.warning {
@@ -987,36 +1078,74 @@
 
 .oc-gauge-subtext.warning {
     color: #DC2626;
+}
+
+.oc-gauge-underline {
+    text-decoration: underline;
+}
+
+.oc-gauge-arc-label {
+    position: absolute;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 13.9583px;
+    font-weight: 300;
+    color: #1B5B7E;
+    line-height: 19px;
+    z-index: 3;
+    pointer-events: none;
+    width: 55.83px;
+    height: 19px;
+    text-align: center;
+}
+
+.oc-gauge-arc-label-right {
+    top: 15%;
+    right: 25%;
+    z-index: 4;
+}
+
+.oc-gauge-arc-label-left {
+    top: 15%;
+    left: 25%;
+    z-index: 4;
 }
 
 .oc-gauge-minmax {
     display: flex;
     justify-content: space-between;
     width: 60%;
-    font-size: 11px;
+    font-size: 13.9583px;
     color: #1B5B7E;
     font-weight: 300;
+    line-height: 19px;
     position: absolute;
-    bottom: 35px;
+    bottom: 50px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1;
+    padding: 0 10px;
+}
+
+.oc-gauge-minmax span {
+    width: auto;
+    text-align: center;
 }
 
 .oc-gauge-footer {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
+    font-weight: 400;
     text-align: center;
     color: #6B7280;
-    padding: 0 10px;
-    line-height: 1.3;
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    padding: 4px 0 0 0;
+    line-height: 1.5;
+    position: relative;
     width: 100%;
-    z-index: 1;
+    margin-top: 4px;
+}
+
+.oc-lab-card:first-child .oc-gauge-footer {
+    display: none;
 }
 
 .oc-lab-split {
