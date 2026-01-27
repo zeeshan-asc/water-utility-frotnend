@@ -1,0 +1,48 @@
+/* Shared Page Navigation Component */
+.page-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FAFAFA;
+    border: 0.66px solid #689EC2;
+    box-shadow: 2.64px 2.64px 5.29px #CFCFCF;
+    border-radius: 39.6px;
+    padding: 6px;
+    width: 100%;
+    margin: 0 auto 30px auto;
+}
+
+.page-nav-tab {
+    flex: 1;
+    padding: 8px 4px;
+    background: transparent;
+    border: none;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #535353;
+    cursor: pointer;
+    border-radius: 39.6px;
+    transition: all 0.2s;
+    text-align: center;
+    white-space: nowrap;
+    text-decoration: none;
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .page-nav-tab {
+        font-size: 18.4px;
+        padding: 8px 0;
+    }
+}
+
+.page-nav-tab.active {
+    background: #9BC0DA;
+    font-weight: 700;
+    color: #1E4A79;
+}
+
+.page-nav-tab:hover {
+    background: #9BC0DA;
+}

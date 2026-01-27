@@ -7,6 +7,7 @@ import {
 import {
     Search, TrendingUp, AlertCircle, CheckCircle, Flag, Lightbulb
 } from 'lucide-react';
+import PageNavigation from './PageNavigation';
 import './FinancialHealth.css';
 
 const API_BASE_URL = 'http://localhost:8084';
@@ -549,11 +550,7 @@ const FinancialHealth = () => {
             </div>
 
             {/* Tab Navigation */}
-            <div className="fh-tab-navigation">
-                <button className="fh-tab active">Financial Health</button>
-                <button className="fh-tab">Operations & Compliance</button>
-                <button className="fh-tab">Billing Insights</button>
-            </div>
+            <PageNavigation />
 
             {/* KPI Cards - Row 1 */}
             <div className="fh-kpi-grid-row1">

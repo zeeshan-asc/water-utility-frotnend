@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, TrendingUp, AlertCircle, CheckCircle, Flag } from 'lucide-react';
+import PageNavigation from './PageNavigation';
 import './BillingInsights.css';
 
 // Static data
@@ -79,11 +80,7 @@ const BillingInsights = () => {
             </div>
 
             {/* Tab Navigation */}
-            <div className="bi-tab-navigation">
-                <button className="bi-tab">Financial Health</button>
-                <button className="bi-tab">Operations & Compliance</button>
-                <button className="bi-tab bi-tab-active">Billing Insights</button>
-            </div>
+            <PageNavigation />
 
             {/* Executive Summary Section */}
             <div className="bi-executive-summary">

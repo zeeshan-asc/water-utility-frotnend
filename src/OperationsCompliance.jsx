@@ -1,6 +1,7 @@
 import React from 'react';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
 import { AlertCircle, CheckCircle, Activity, Search, TrendingUp, Settings, Droplet } from 'lucide-react';
+import PageNavigation from './PageNavigation';
 import './OperationsCompliance.css';
 
 // Data
@@ -63,11 +64,7 @@ const OperationsCompliance = () => {
             </div>
 
             {/* Tab Navigation */}
-            <div className="oc-tab-navigation">
-                <button className="oc-tab">Financial Health</button>
-                <button className="oc-tab oc-tab-active">Operations & Compliance</button>
-                <button className="oc-tab">Billing Insights</button>
-            </div>
+            <PageNavigation />
 
             {/* AI Query Section */}
             <div className="oc-ai-section">

@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Segoe+UI+Symbol&display=swap');
 
 .operations-compliance-container {
-    width: 100%;
-    max-width: 1440px;
+    width: 90%;
     margin: 0 auto;
     background: linear-gradient(180deg, #F4F8FE 0%, #FFFFFF 100%);
     padding: 20px;
@@ -83,6 +82,8 @@
     transition: all 0.2s;
     text-align: center;
     white-space: nowrap;
+    text-decoration: none;
+    display: block;
 }
 
 @media (min-width: 768px) {
