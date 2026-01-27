@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { ChevronUp } from 'lucide-react'
 import './Home.css'
 
 function Home() {
@@ -23,15 +24,15 @@ function Home() {
           </Link>
           <Link to="/financial-health" className={`nav-link ${location.pathname === '/financial-health' ? 'active' : ''}`}>
             <span className="nav-link-line"></span>
-            FINANCIAL HEALTH <span className="arrow-icon">▲</span>
+            FINANCIAL HEALTH <ChevronUp size={10} className="arrow-icon" />
           </Link>
           <Link to="/operations-compliance" className={`nav-link ${location.pathname === '/operations-compliance' ? 'active' : ''}`}>
             <span className="nav-link-line"></span>
-            OPERATIONS & COMPLIANCE <span className="arrow-icon">▲</span>
+            OPERATIONS & COMPLIANCE <ChevronUp size={10} className="arrow-icon" />
           </Link>
           <Link to="/billing-insights" className={`nav-link ${location.pathname === '/billing-insights' ? 'active' : ''}`}>
             <span className="nav-link-line"></span>
-            BILLING INSIGHTS <span className="arrow-icon">▲</span>
+            BILLING INSIGHTS <ChevronUp size={10} className="arrow-icon" />
           </Link>
         </nav>
       </header>

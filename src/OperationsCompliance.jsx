@@ -1,6 +1,6 @@
 import React from 'react';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
-import { AlertCircle, CheckCircle, Activity, Search, TrendingUp, Settings, Droplet } from 'lucide-react';
+import { AlertCircle, CheckCircle, Activity, Search, TrendingUp, TrendingDown, Settings, Droplet } from 'lucide-react';
 import PageNavigation from './PageNavigation';
 import './OperationsCompliance.css';
 
@@ -354,8 +354,7 @@ const OperationsCompliance = () => {
                             <text x="67.665" y="70" textAnchor="middle" fontSize="15.0364" fontWeight="600" fill="#1B5B7E">87/100</text>
                             {/* Trend indicator with green text - positioned below 87/100 */}
                             <text x="67.665" y="85" textAnchor="middle" fontSize="9.02185" fill="#16A34A">
-                                <tspan>▲</tspan>
-                                <tspan dx="2">+1.5%</tspan>
+                                <tspan>+1.5%</tspan>
                                 <tspan dx="3">In Compliance</tspan>
                             </text>
                             {/* Compliance Score label at bottom */}

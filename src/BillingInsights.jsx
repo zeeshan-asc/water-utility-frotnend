@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, TrendingUp, AlertCircle, CheckCircle, Flag } from 'lucide-react';
+import { Search, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Flag, FileText, DollarSign, Target } from 'lucide-react';
 import PageNavigation from './PageNavigation';
 import './BillingInsights.css';
 
@@ -417,27 +417,27 @@ const BillingInsights = () => {
             {/* Bottom Summary Cards */}
             <div className="bi-bottom-cards">
                 <div className="bi-summary-card blue">
-                    <div className="bi-summary-icon">📋</div>
+                    <div className="bi-summary-icon"><FileText size={24} /></div>
                     <div className="bi-summary-label">Total Work Orders TT Month</div>
                     <div className="bi-summary-value">1234</div>
                 </div>
                 <div className="bi-summary-card orange">
-                    <div className="bi-summary-icon">💰</div>
+                    <div className="bi-summary-icon"><DollarSign size={24} /></div>
                     <div className="bi-summary-label">Total Billed</div>
                     <div className="bi-summary-value">$56,789</div>
                 </div>
                 <div className="bi-summary-card teal">
-                    <div className="bi-summary-icon">⚠️</div>
+                    <div className="bi-summary-icon"><AlertTriangle size={24} /></div>
                     <div className="bi-summary-label">Unreconciled Work Orders</div>
                     <div className="bi-summary-value">45</div>
                 </div>
                 <div className="bi-summary-card green">
-                    <div className="bi-summary-icon">🎯</div>
+                    <div className="bi-summary-icon"><Target size={24} /></div>
                     <div className="bi-summary-label">Predicted High Risk Detected</div>
                     <div className="bi-summary-value">12</div>
                 </div>
                 <div className="bi-summary-card red">
-                    <div className="bi-summary-icon">⚠️</div>
+                    <div className="bi-summary-icon"><AlertTriangle size={24} /></div>
                     <div className="bi-summary-label">Predicted High Risk</div>
                     <div className="bi-summary-value">8%</div>
                 </div>
