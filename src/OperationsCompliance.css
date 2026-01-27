@@ -594,6 +594,255 @@
         grid-template-columns: 1fr 2.3fr 2.3fr 1.8fr;
         height: 228px;
     }
+
+    .oc-gauge-container {
+        min-height: 240px;
+    }
+
+    .oc-gauge-overlay {
+        top: 30%;
+    }
+
+    .oc-gauge-value-container {
+        top: 72%;
+    }
+
+    .oc-gauge-minmax {
+        bottom: 40px;
+    }
+
+    .oc-gauge-footer {
+        bottom: 5px;
+    }
+
+    .oc-gauge-label {
+        font-size: 12px;
+    }
+
+    .oc-gauge-value {
+        font-size: 32px;
+    }
+
+    .oc-gauge-subtext {
+        font-size: 11px;
+    }
+
+    .oc-gauge-target-label {
+        font-size: 11px;
+    }
+
+    .oc-gauge-footer {
+        font-size: 11px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .oc-gauge-container {
+        min-height: 220px;
+    }
+
+    .oc-gauge-overlay {
+        top: 30%;
+    }
+
+    .oc-gauge-value-container {
+        top: 72%;
+    }
+
+    .oc-gauge-minmax {
+        bottom: 35px;
+        font-size: 10px;
+    }
+
+    .oc-gauge-footer {
+        bottom: 5px;
+        font-size: 9px;
+    }
+
+    .oc-gauge-label {
+        font-size: 10px;
+    }
+
+    .oc-gauge-value {
+        font-size: 24px;
+    }
+
+    .oc-gauge-subtext {
+        font-size: 9px;
+    }
+
+    .oc-gauge-target-label {
+        font-size: 9px;
+    }
+
+    .oc-gauge-minmax {
+        font-size: 10px;
+        width: 70%;
+    }
+
+    .oc-gauge-footer {
+        font-size: 9px;
+        padding: 0 5px;
+    }
+}
+
+@media (max-width: 767px) {
+    .oc-lab-card {
+        padding: 12px;
+        width: 100%;
+    }
+
+    .oc-lab-card-title {
+        font-size: 13px;
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+
+    .oc-gauge-container {
+        min-height: 200px;
+        margin-top: -5px;
+    }
+
+    .oc-gauge-container .recharts-wrapper {
+        height: 120px !important;
+    }
+
+    .oc-gauge-overlay {
+        top: 28%;
+        transform: translate(-50%, -50%);
+    }
+
+    .oc-gauge-value-container {
+        top: 70%;
+        transform: translateX(-50%);
+    }
+
+    .oc-gauge-minmax {
+        bottom: 30px;
+        font-size: 9px;
+    }
+
+    .oc-gauge-footer {
+        bottom: 5px;
+        font-size: 8px;
+    }
+
+    .oc-gauge-label {
+        font-size: 9px;
+        margin-bottom: 0;
+    }
+
+    .oc-gauge-value {
+        font-size: 22px;
+        margin-bottom: 3px;
+    }
+
+    .oc-gauge-subtext {
+        font-size: 8px;
+        margin-top: 3px;
+    }
+
+    .oc-gauge-target-label {
+        font-size: 8px;
+        margin-top: 2px;
+    }
+
+    .oc-gauge-minmax {
+        font-size: 9px;
+        width: 80%;
+        margin: 5px auto 0;
+    }
+
+    .oc-gauge-footer {
+        font-size: 8px;
+        margin-top: 8px;
+        padding: 0 5px;
+        line-height: 1.3;
+    }
+}
+
+@media (max-width: 480px) {
+    .oc-lab-card {
+        padding: 10px;
+    }
+
+    .oc-lab-card-title {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .oc-gauge-container {
+        min-height: 180px;
+    }
+
+    .oc-gauge-container .recharts-wrapper {
+        height: 110px !important;
+    }
+
+    .oc-gauge-overlay {
+        top: 28%;
+    }
+
+    .oc-gauge-value-container {
+        top: 70%;
+    }
+
+    .oc-gauge-minmax {
+        bottom: 25px;
+        font-size: 8px;
+    }
+
+    .oc-gauge-footer {
+        bottom: 5px;
+        font-size: 7px;
+    }
+
+    .oc-gauge-value {
+        font-size: 20px;
+    }
+
+    .oc-gauge-label {
+        font-size: 8px;
+    }
+
+    .oc-gauge-subtext {
+        font-size: 7px;
+    }
+
+    .oc-gauge-target-label {
+        font-size: 7px;
+    }
+
+    .oc-gauge-minmax {
+        font-size: 8px;
+    }
+
+    .oc-gauge-footer {
+        font-size: 7px;
+    }
+
+    .oc-circular-score {
+        min-height: 160px;
+        padding: 5px;
+    }
+
+    .oc-circular-score svg {
+        max-width: 100px;
+    }
+
+    .oc-circular-score .score-title {
+        font-size: 7px;
+    }
+
+    .oc-circular-score .score-trend {
+        font-size: 7px;
+        top: 75px;
+    }
+
+    .oc-circular-score .score-details {
+        font-size: 7px;
+        padding: 2px;
+    }
 }
 
 .oc-lab-card {
@@ -675,22 +924,43 @@
     position: relative;
     width: 100%;
     margin-top: -10px;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-bottom: 10px;
 }
 
 .oc-gauge-overlay {
     position: absolute;
-    top: 60%;
+    top: 30%;
     left: 50%;
-    transform: translate(-50%, 0);
+    transform: translate(-50%, -50%);
     text-align: center;
     width: 100%;
+    z-index: 2;
+    pointer-events: none;
 }
 
 .oc-gauge-label {
     font-family: 'Segoe UI', sans-serif;
     font-size: 11px;
-    color: #4B5563;
-    margin-bottom: 4px;
+    font-weight: 600;
+    color: #1B5B7E;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.oc-gauge-value-container {
+    position: absolute;
+    top: 72%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    width: 100%;
+    z-index: 2;
+    pointer-events: none;
 }
 
 .oc-gauge-value {
@@ -698,14 +968,22 @@
     font-weight: 700;
     font-size: 28px;
     color: #1B5B7E;
-    line-height: 1;
+    line-height: 1.2;
+    margin-bottom: 6px;
 }
 
 .oc-gauge-subtext {
     font-family: 'Segoe UI', sans-serif;
     font-size: 10px;
     color: #6B7280;
-    margin-top: 5px;
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.4;
+    padding: 0 10px;
+}
+
+.oc-gauge-subtext.warning {
+    color: #DC2626;
 }
 
 .oc-gauge-subtext.warning {
@@ -716,22 +994,30 @@
     display: flex;
     justify-content: space-between;
     width: 60%;
-    margin: 0 auto;
-    font-size: 14px;
-    /* Using prompt font size roughly or keeping small */
+    font-size: 11px;
     color: #1B5B7E;
     font-weight: 300;
-    margin-top: -20px;
+    position: absolute;
+    bottom: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
 }
 
 .oc-gauge-footer {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 14px;
-    /* Matches prompt 'Based on regulatory...' font size approx */
+    font-size: 10px;
     font-weight: 300;
     text-align: center;
-    color: #1B5B7E;
-    margin-top: 5px;
+    color: #6B7280;
+    padding: 0 10px;
+    line-height: 1.3;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    z-index: 1;
 }
 
 .oc-lab-split {
@@ -1510,6 +1796,10 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
+
+    .oc-quality-card.oc-circular-score-card {
+        grid-column: span 2;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -1517,6 +1807,25 @@
         display: flex;
         flex-direction: row;
         grid-template-columns: none;
+        align-items: stretch;
+    }
+
+    .oc-quality-card.oc-circular-score-card {
+        flex: 0 0 auto;
+        width: 267px;
+        max-width: 267px;
+        min-width: 267px;
+    }
+}
+
+@media (max-width: 767px) {
+    .oc-quality-compliance-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .oc-quality-card.oc-circular-score-card {
+        grid-column: span 1;
     }
 }
 
@@ -1548,15 +1857,33 @@
     }
 }
 
+@media (max-width: 767px) {
+    .oc-quality-card {
+        padding: 12px;
+        min-width: 100%;
+    }
+}
+
 .oc-quality-card.oc-circular-score-card {
     align-items: center;
     justify-content: flex-start;
     padding: 15px;
+    width: 100%;
+    max-width: 267px;
+    box-sizing: border-box;
+    border: 2px dashed #689EC2;
+    background: #FFFFFF;
 }
 
 @media (min-width: 768px) {
     .oc-quality-card.oc-circular-score-card {
         padding: 17.7461px;
+    }
+}
+
+@media (max-width: 767px) {
+    .oc-quality-card.oc-circular-score-card {
+        padding: 12px;
     }
 }
 
@@ -1634,17 +1961,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     width: 100%;
+    max-width: 267px;
     position: relative;
     padding: 10px;
+    min-height: 200px;
+    margin: 0 auto;
 }
 
 .oc-circular-score svg {
-    width: 100%;
+    width: 135.33px;
     max-width: 135.33px;
-    height: auto;
-    aspect-ratio: 135.33 / 129.31;
+    height: 129.31px;
+    flex-shrink: 0;
 }
 
 .oc-circular-score text {
@@ -1668,49 +1998,101 @@
 }
 
 .oc-circular-score .score-trend {
-    position: absolute;
-    font-family: 'League Spartan', sans-serif;
-    font-style: normal;
-    font-weight: 500;
-    font-size: 9.02185px;
-    line-height: 8px;
-    text-align: center;
-    color: #16A34A;
-    top: 93px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 2px;
+    display: none; /* Moved inside SVG */
 }
 
 .oc-circular-score .score-details {
     position: absolute;
     width: 100%;
     max-width: 237.58px;
-    min-height: 10px;
+    min-height: 20px;
     font-family: 'League Spartan', sans-serif;
     font-style: normal;
     font-weight: 300;
     font-size: 9px;
-    line-height: 1.2;
+    line-height: 1.3;
     text-align: center;
     color: #073356;
-    bottom: -30px;
+    bottom: 0;
     left: 50%;
     transform: translateX(-50%);
     white-space: normal;
-    padding: 0 5px;
+    padding: 5px;
     box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
+    .oc-circular-score {
+        min-height: 220px;
+        padding: 15px;
+        max-width: 267px;
+    }
+
+    .oc-circular-score svg {
+        width: 135.33px;
+        max-width: 135.33px;
+        height: 129.31px;
+    }
+
+    .oc-quality-card.oc-circular-score-card {
+        max-width: 267px;
+        width: 267px;
+    }
+
+    .oc-circular-score .score-title {
+        font-size: 10px;
+        top: 5px;
+    }
+
+    .oc-circular-score .score-trend {
+        font-size: 10px;
+        top: 100px;
+    }
+
     .oc-circular-score .score-details {
         font-size: 10.5255px;
-        line-height: 10px;
-        white-space: nowrap;
+        line-height: 1.2;
+        white-space: normal;
         width: 237.58px;
-        height: 10px;
+        min-height: 15px;
+        bottom: 5px;
+    }
+}
+
+@media (max-width: 767px) {
+    .oc-circular-score {
+        min-height: 180px;
+        padding: 8px;
+        max-width: 100%;
+    }
+
+    .oc-quality-card.oc-circular-score-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .oc-circular-score svg {
+        width: 120px;
+        max-width: 120px;
+        height: 114.5px;
+    }
+
+    .oc-circular-score .score-title {
+        font-size: 8px;
+        top: 0;
+    }
+
+    .oc-circular-score .score-trend {
+        font-size: 8px;
+        top: 85px;
+    }
+
+    .oc-circular-score .score-details {
+        font-size: 8px;
+        line-height: 1.2;
+        padding: 3px;
+        bottom: 0;
+        max-width: 100%;
     }
 }
 

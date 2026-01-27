@@ -866,7 +866,17 @@ const FinancialHealth = () => {
             {/* Section Title */}
             <div className="fh-section-header">
                 <h2 className="fh-section-title">
-                    <span className="fh-title-icon">📊</span>
+                    <span className="fh-title-icon">
+                        <svg width="34" height="40" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Three vertical bars increasing in height */}
+                            <rect x="4" y="28" width="4" height="8" fill="#1B5B7E"/>
+                            <rect x="10" y="24" width="4" height="12" fill="#1B5B7E"/>
+                            <rect x="16" y="18" width="4" height="18" fill="#1B5B7E"/>
+                            {/* Coin with dollar sign above the tallest bar */}
+                            <circle cx="18" cy="12" r="6" fill="#1B5B7E"/>
+                            <text x="18" y="16" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontFamily="Arial, sans-serif" fontWeight="bold">$</text>
+                        </svg>
+                    </span>
                     Financial Performance & Strategy Hub
                 </h2>
             </div>
@@ -1191,7 +1201,22 @@ const FinancialHealth = () => {
             {/* Actionable Intelligence Section */}
             <div className="fh-section-header">
                 <h2 className="fh-section-title">
-                    <span className="fh-title-icon">📊</span>
+                    <span className="fh-title-icon">
+                        <svg width="34" height="40" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Cloud-like/blob shape on the left */}
+                            <path d="M8 20C8 16 10 12 14 12C14 10 16 8 18 8C20 8 22 10 22 12C24 12 26 14 26 16C26 18 24 20 22 20L14 20C12 20 10 18 10 16C10 14 8 16 8 20Z" fill="#1B5B7E"/>
+                            {/* Three horizontal lines extending to the right with circular nodes */}
+                            {/* Top line (angles slightly upwards) */}
+                            <line x1="26" y1="14" x2="30" y2="12" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round"/>
+                            <circle cx="30" cy="12" r="2" fill="#1B5B7E"/>
+                            {/* Middle line (horizontal) */}
+                            <line x1="26" y1="20" x2="30" y2="20" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round"/>
+                            <circle cx="30" cy="20" r="2" fill="#1B5B7E"/>
+                            {/* Bottom line (angles slightly downwards) */}
+                            <line x1="26" y1="26" x2="30" y2="28" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round"/>
+                            <circle cx="30" cy="28" r="2" fill="#1B5B7E"/>
+                        </svg>
+                    </span>
                     Actionable Intelligence for Strategic Decisions
                 </h2>
             </div>
@@ -1220,7 +1245,31 @@ const FinancialHealth = () => {
             {/* Debt Sustainability Section */}
             <div className="fh-section-header">
                 <h2 className="fh-section-title">
-                    <span className="fh-title-icon">💹</span>
+                    <span className="fh-title-icon">
+                        <svg width="34" height="40" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Central Coin with Dollar Sign */}
+                            <circle cx="17" cy="20" r="6" fill="#1B5B7E"/>
+                            <text x="17" y="24" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontFamily="Arial, sans-serif" fontWeight="bold">$</text>
+                            
+                            {/* Circular Arrow/Loop - forms complete circle around coin, starts bottom-left */}
+                            <path d="M 11 26.5 A 6 6 0 0 1 11 13.5 A 6 6 0 0 1 23 13.5 A 6 6 0 0 1 25 16" 
+                                  stroke="#1B5B7E" 
+                                  strokeWidth="2.5" 
+                                  fill="none" 
+                                  strokeLinecap="round"/>
+                            
+                            {/* Arrow head at top-right end of loop */}
+                            <path d="M 25 16 L 22.5 14.5 L 24 17.5 Z" fill="#1B5B7E"/>
+                            
+                            {/* Sprout emerging from top-right of arrow */}
+                            {/* Stem */}
+                            <line x1="25" y1="16" x2="25" y2="11" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round"/>
+                            {/* Left leaf - small rounded leaf curving left */}
+                            <path d="M 25 11 Q 23.5 9.5 23 11 Q 23.5 10.5 25 11" fill="#1B5B7E"/>
+                            {/* Right leaf - small rounded leaf curving right */}
+                            <path d="M 25 11 Q 26.5 9.5 27 11 Q 26.5 10.5 25 11" fill="#1B5B7E"/>
+                        </svg>
+                    </span>
                     Debt Sustainability & Health Outlook
                 </h2>
             </div>

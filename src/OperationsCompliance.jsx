@@ -343,18 +343,24 @@ const OperationsCompliance = () => {
                     <div className="oc-circular-score">
                         <div className="score-title">At Risk</div>
                         <svg width="135.33" height="129.31" viewBox="0 0 135.33 129.31" style={{ marginTop: '10px' }}>
+                            {/* Background gray circle */}
                             <circle cx="67.665" cy="64.655" r="60" fill="none" stroke="#D9D9D9" strokeWidth="12" />
+                            {/* Blue progress circle - 87% filled */}
                             <circle cx="67.665" cy="64.655" r="60" fill="none" stroke="#689EC2" strokeWidth="12" 
                                 strokeDasharray="377" strokeDashoffset="49" transform="rotate(-90 67.665 64.655)" strokeLinecap="round" />
-                            <text x="67.665" y="60" textAnchor="middle" fontSize="25.5619" fontWeight="600" fill="#1B5B7E">87</text>
-                            <text x="67.665" y="75" textAnchor="middle" fontSize="15.0364" fontWeight="600" fill="#1B5B7E">87/100</text>
-                            <text x="67.665" y="90" textAnchor="middle" fontSize="9.02185" fill="#073356">Compliance Score</text>
+                            {/* Large score number */}
+                            <text x="67.665" y="55" textAnchor="middle" fontSize="25.5619" fontWeight="600" fill="#1B5B7E">87</text>
+                            {/* Score fraction */}
+                            <text x="67.665" y="70" textAnchor="middle" fontSize="15.0364" fontWeight="600" fill="#1B5B7E">87/100</text>
+                            {/* Trend indicator with green text - positioned below 87/100 */}
+                            <text x="67.665" y="85" textAnchor="middle" fontSize="9.02185" fill="#16A34A">
+                                <tspan>▲</tspan>
+                                <tspan dx="2">+1.5%</tspan>
+                                <tspan dx="3">In Compliance</tspan>
+                            </text>
+                            {/* Compliance Score label at bottom */}
+                            <text x="67.665" y="100" textAnchor="middle" fontSize="9.02185" fill="#073356">Compliance Score</text>
                         </svg>
-                        <div className="score-trend">
-                            <span>▲</span>
-                            <span>+1.5%</span>
-                            <span style={{ marginLeft: '5px', color: '#16A34A' }}>In Compliance</span>
-                        </div>
                         <div className="score-details">Chlorine: 0.05 mg/L, PFAS: 0.01 ng/L</div>
                     </div>
                 </div>
@@ -595,6 +601,8 @@ const OperationsCompliance = () => {
                         </ResponsiveContainer>
                         <div className="oc-gauge-overlay">
                             <div className="oc-gauge-label">Tests Completed</div>
+                        </div>
+                        <div className="oc-gauge-value-container">
                             <div className="oc-gauge-value">7520</div>
                             <div className="oc-gauge-subtext">83.5% of Annual Target</div>
                         </div>
@@ -629,14 +637,15 @@ const OperationsCompliance = () => {
                         </ResponsiveContainer>
                         <div className="oc-gauge-overlay">
                             <div className="oc-gauge-label">Exceedances Detected</div>
+                        </div>
+                        <div className="oc-gauge-value-container">
                             <div className="oc-gauge-value">38</div>
-                            <div className="oc-gauge-subtext warning">Threshold: &lt;50 per year</div>
+                            <div className="oc-gauge-subtext">Based on regulatory and safety thresholds</div>
                         </div>
                         <div className="oc-gauge-minmax">
                             <span>0</span>
                             <span>&lt;50</span>
                         </div>
-                        <div className="oc-gauge-footer">Based on regulatory and internal safety thresholds</div>
                     </div>
                 </div>
 
