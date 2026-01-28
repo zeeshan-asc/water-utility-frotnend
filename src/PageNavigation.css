@@ -9,7 +9,9 @@
     border-radius: 39.6px;
     padding: 6px;
     width: 100%;
+    max-width: 1340px;
     margin: 0 auto 30px auto;
+    gap: 4px;
 }
 
 .page-nav-tab {
@@ -28,6 +30,9 @@
     white-space: nowrap;
     text-decoration: none;
     display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 @media (min-width: 768px) {
@@ -45,4 +50,112 @@
 
 .page-nav-tab:hover {
     background: #9BC0DA;
+}
+
+/* Tablet and Medium Screens (900px and below) */
+@media (max-width: 900px) {
+    .page-navigation {
+        padding: 5px;
+        margin: 0 auto 20px auto;
+        border-radius: 30px;
+        gap: 3px;
+    }
+
+    .page-nav-tab {
+        font-size: 13px;
+        padding: 7px 3px;
+    }
+}
+
+/* Mobile Devices (640px and below) */
+@media (max-width: 640px) {
+    .page-navigation {
+        padding: 4px;
+        margin: 0 auto 15px auto;
+        border-radius: 25px;
+        gap: 2px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .page-navigation::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+
+    .page-nav-tab {
+        font-size: 11px;
+        padding: 6px 4px;
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Ensure tabs have minimum readable width but can shrink */
+    .page-nav-tab:nth-child(1) {
+        min-width: 85px; /* Financial Health */
+    }
+
+    .page-nav-tab:nth-child(2) {
+        min-width: 130px; /* Operations & Compliance */
+    }
+
+    .page-nav-tab:nth-child(3) {
+        min-width: 95px; /* Billing Insights */
+    }
+}
+
+/* Extra Small Mobile Devices (480px and below) */
+@media (max-width: 480px) {
+    .page-navigation {
+        padding: 3px;
+        border-radius: 20px;
+        margin: 0 auto 12px auto;
+    }
+
+    .page-nav-tab {
+        font-size: 10px;
+        padding: 5px 3px;
+    }
+
+    /* Further reduce min-widths for very small screens */
+    .page-nav-tab:nth-child(1) {
+        min-width: 75px;
+    }
+
+    .page-nav-tab:nth-child(2) {
+        min-width: 115px;
+    }
+
+    .page-nav-tab:nth-child(3) {
+        min-width: 85px;
+    }
+}
+
+/* Very Small Mobile Devices (360px and below) */
+@media (max-width: 360px) {
+    .page-navigation {
+        padding: 2px;
+        border-radius: 18px;
+    }
+
+    .page-nav-tab {
+        font-size: 9px;
+        padding: 4px 2px;
+    }
+
+    .page-nav-tab:nth-child(1) {
+        min-width: 65px;
+    }
+
+    .page-nav-tab:nth-child(2) {
+        min-width: 95px;
+    }
+
+    .page-nav-tab:nth-child(3) {
+        min-width: 75px;
+    }
 }

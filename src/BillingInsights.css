@@ -3,7 +3,7 @@
 .billing-insights-container {
     position: relative;
     width: 90%;
-    min-height: 2375px;
+    min-height: auto;
     background: linear-gradient(180deg, #F4F8FE 0%, #FFFFFF 100%);
     padding: 29px 50px;
     font-family: 'Segoe UI', 'Noto Sans', sans-serif;
@@ -445,6 +445,14 @@
     color: #535353;
     white-space: nowrap;
     z-index: 10;
+}
+
+/* Desktop positioning for AI flags (replaces hard-coded inline left/top) */
+.bi-ai-flag--row0,
+.bi-ai-flag--row1,
+.bi-ai-flag--row2 {
+    right: 0;
+    top: -18px;
 }
 
 .bi-chart-labels {
@@ -1150,6 +1158,18 @@
     .bi-ai-flag {
         font-size: 7px;
         padding: 2px 4px;
+    }
+
+    /* On small screens, avoid overlap: render flags inline below row */
+    .bi-ai-flag,
+    .bi-ai-flag--row0,
+    .bi-ai-flag--row1,
+    .bi-ai-flag--row2 {
+        position: static;
+        margin-left: 8px;
+        margin-top: 6px;
+        white-space: normal;
+        max-width: 260px;
     }
     
     .bi-bottom-cards {
