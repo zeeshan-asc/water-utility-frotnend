@@ -172,19 +172,19 @@ const BillingInsights = () => {
                                     <div className="bi-bar bi-bar-loss" style={{ width: `${(item.loss / 350) * 100}%` }}></div>
                                 </div>
                                 {item.aiSignal !== 0 && idx === 0 && (
-                                    <div className="bi-ai-flag" style={{ left: '409px', top: '87px' }}>
+                                    <div className="bi-ai-flag bi-ai-flag--row0">
                                         <Flag size={10} color="#DC2626" />
                                         <span>AI Signal - residential revenues trending 8% above target</span>
                                     </div>
                                 )}
                                 {idx === 1 && (
-                                    <div className="bi-ai-flag" style={{ left: '296px', top: '62px' }}>
+                                    <div className="bi-ai-flag bi-ai-flag--row1">
                                         <Flag size={10} color="#DC2626" />
                                         <span>AI Signal - commercial margins trailing segment average</span>
                                     </div>
                                 )}
                                 {idx === 2 && (
-                                    <div className="bi-ai-flag" style={{ left: '226px', top: '109px' }}>
+                                    <div className="bi-ai-flag bi-ai-flag--row2">
                                         <Flag size={10} color="#DC2626" />
                                         <span>AI Signal - slowly growth may indicate operational change</span>
                                     </div>

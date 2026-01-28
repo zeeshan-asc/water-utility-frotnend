@@ -224,10 +224,39 @@ const FinancialHealth = () => {
     const [aiResponse, setAiResponse] = useState(null);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiError, setAiError] = useState(null);
+    const [aiChatHistory, setAiChatHistory] = useState([]);
     
     // Health check states
     const [backendHealth, setBackendHealth] = useState(null);
     const [aiHealth, setAiHealth] = useState(null);
+
+    // Restore chat history from sessionStorage on mount
+    useEffect(() => {
+        try {
+            const stored = window.sessionStorage.getItem('fh-ai-chat-history');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    setAiChatHistory(parsed);
+                }
+            }
+        } catch (err) {
+            console.warn('Failed to restore AI chat history from sessionStorage:', err);
+        }
+    }, []);
+
+    // Persist chat history to sessionStorage whenever it changes
+    useEffect(() => {
+        try {
+            if (aiChatHistory && aiChatHistory.length > 0) {
+                window.sessionStorage.setItem('fh-ai-chat-history', JSON.stringify(aiChatHistory));
+            } else {
+                window.sessionStorage.removeItem('fh-ai-chat-history');
+            }
+        } catch (err) {
+            console.warn('Failed to persist AI chat history to sessionStorage:', err);
+        }
+    }, [aiChatHistory]);
 
     // Helper function to handle API responses with success/data wrapper
     const handleApiResponse = async (response) => {
@@ -246,7 +275,6 @@ const FinancialHealth = () => {
         try {
             setAiLoading(true);
             setAiError(null);
-            setAiResponse(null);
             
             console.log('Sending AI request:', question);
             console.log('API URL:', `${API_BASE_URL}/api/v0/ai/generate-sql`);
@@ -288,14 +316,25 @@ const FinancialHealth = () => {
             
             // If it's a text response, just show the message and skip SQL execution
             if (isTextResponse && sql) {
-                setAiResponse({
+                const responseObj = {
                     success: true,
                     sql: null,
                     data: null,
                     summary: sql,
                     isConversational: true,
                     type: responseType || 'text'
-                });
+                };
+                setAiResponse(responseObj);
+                setAiChatHistory(prev => [
+                    ...prev,
+                    {
+                        question,
+                        summary: responseObj.summary,
+                        type: responseObj.type,
+                        sql: null,
+                        data: null
+                    }
+                ]);
                 console.log('AI response set successfully (text response)');
                 return;
             }
@@ -359,19 +398,30 @@ const FinancialHealth = () => {
                     const summaryJson = await summaryResponse.json();
                     const summary = summaryJson.summary || summaryJson.text || summaryJson.data?.summary || summaryJson.data;
                     
-                    setAiResponse({
+                    const responseObj = {
                         success: true,
                         sql: sql || null,
                         data: sqlResults,
                         summary: summary || 'Summary generated successfully.',
                         type: responseType || (sql ? 'sql' : 'text')
-                    });
+                    };
+                    setAiResponse(responseObj);
+                    setAiChatHistory(prev => [
+                        ...prev,
+                        {
+                            question,
+                            summary: responseObj.summary,
+                            type: responseObj.type,
+                            sql: responseObj.sql,
+                            data: responseObj.data
+                        }
+                    ]);
                 } else {
                     // Summary generation failed, but we can still show SQL/results
                     const errorText = await summaryResponse.text();
                     console.warn('Summary generation failed:', errorText);
                     const isSqlType = responseType === 'sql' || (responseType !== 'text' && sql);
-                    setAiResponse({
+                    const responseObj = {
                         success: true,
                         sql: sql || null,
                         data: sqlResults,
@@ -379,13 +429,24 @@ const FinancialHealth = () => {
                             ? `Query executed successfully. ${Array.isArray(sqlResults) ? sqlResults.length : Object.keys(sqlResults || {}).length} rows returned.`
                             : (isSqlType && sql ? `SQL generated: ${sql}` : 'Question processed successfully.'),
                         type: responseType || (sql ? 'sql' : 'text')
-                    });
+                    };
+                    setAiResponse(responseObj);
+                    setAiChatHistory(prev => [
+                        ...prev,
+                        {
+                            question,
+                            summary: responseObj.summary,
+                            type: responseObj.type,
+                            sql: responseObj.sql,
+                            data: responseObj.data
+                        }
+                    ]);
                 }
             } catch (summaryErr) {
                 console.warn('Summary generation error:', summaryErr);
                 // Fallback: show SQL/results even if summary fails
                 const isSqlType = responseType === 'sql' || (responseType !== 'text' && sql);
-                setAiResponse({
+                const responseObj = {
                     success: true,
                     sql: sql || null,
                     data: sqlResults,
@@ -393,7 +454,18 @@ const FinancialHealth = () => {
                         ? `Query executed successfully. ${Array.isArray(sqlResults) ? sqlResults.length : Object.keys(sqlResults || {}).length} rows returned.`
                         : (isSqlType && sql ? `SQL generated: ${sql}` : 'Question processed successfully.'),
                     type: responseType || (sql ? 'sql' : 'text')
-                });
+                };
+                setAiResponse(responseObj);
+                setAiChatHistory(prev => [
+                    ...prev,
+                    {
+                        question,
+                        summary: responseObj.summary,
+                        type: responseObj.type,
+                        sql: responseObj.sql,
+                        data: responseObj.data
+                    }
+                ]);
             }
             
             console.log('AI response set successfully');
@@ -671,14 +743,64 @@ const FinancialHealth = () => {
         e.stopPropagation();
         console.log('Form submitted!', { aiQuestion, trimmed: aiQuestion.trim() });
         
-        if (aiQuestion.trim()) {
-            console.log('Calling fetchAIResponse with:', aiQuestion);
-            fetchAIResponse(aiQuestion);
+        const trimmed = aiQuestion.trim();
+        if (trimmed) {
+            console.log('Calling fetchAIResponse with:', trimmed);
+            fetchAIResponse(trimmed);
+            // Clear the input so only the placeholder/watermark is visible after submit
+            setAiQuestion('');
         } else {
             console.warn('Question is empty, not submitting');
             setAiError('Please enter a question');
         }
     };
+
+    // Reusable renderer for the AI search bar (textbox + button)
+    const renderAiSearchBar = () => (
+        <div className="fh-ai-search-bar">
+            <form
+                onSubmit={handleAIQuestionSubmit}
+                style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '10px' }}
+            >
+                <Search size={18} className="fh-search-icon" />
+                <input
+                    type="text"
+                    className="fh-ai-search-input"
+                    value={aiQuestion}
+                    onChange={(e) => setAiQuestion(e.target.value)}
+                    placeholder="Ask a question about your financial data..."
+                    disabled={aiLoading}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !aiLoading && aiQuestion.trim()) {
+                            e.preventDefault();
+                            handleAIQuestionSubmit(e);
+                        }
+                    }}
+                />
+                <button
+                    type="submit"
+                    disabled={aiLoading || !aiQuestion.trim()}
+                    style={{
+                        background: aiLoading ? '#E5E7EB' : '#1B5B7E',
+                        border: 'none',
+                        cursor: aiLoading || !aiQuestion.trim() ? 'not-allowed' : 'pointer',
+                        padding: '8px',
+                        borderRadius: '20px',
+                        color: aiLoading ? '#9CA3AF' : '#FFFFFF',
+                        minWidth: '40px',
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                    title={!aiQuestion.trim() ? 'Enter a question first' : 'Submit question'}
+                    aria-label="Submit question"
+                >
+                    {aiLoading ? '...' : <Search size={16} />}
+                </button>
+            </form>
+        </div>
+    );
 
     // Transform budget variance data for chart
     const budgetVarianceChartData = budgetVariance.length > 0 ? budgetVariance.map(dept => ({
@@ -799,42 +921,10 @@ const FinancialHealth = () => {
         <div className="financial-health-container">
             {/* Header */}
             <div className="fh-page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <div className="fh-page-header-wrapper">
                     <div>
                         <h1 className="fh-brand-title">AquaSentinel™</h1>
                         <p className="fh-brand-subtitle">CFO Command Intelligence for Financial, Operational, Billing & Compliance Oversight</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        {backendHealth && (
-                            <div style={{ 
-                                fontSize: '10px', 
-                                padding: '4px 8px', 
-                                borderRadius: '12px',
-                                background: backendHealth === 'healthy' ? '#D1FAE5' : '#FEE2E2',
-                                color: backendHealth === 'healthy' ? '#065F46' : '#991B1B',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                            }}>
-                                {backendHealth === 'healthy' ? <CheckCircle size={12} /> : backendHealth === 'unreachable' ? <XCircle size={12} /> : <AlertTriangle size={12} />}
-                                <span>Backend: {backendHealth === 'healthy' ? 'Online' : backendHealth === 'unreachable' ? 'Offline' : 'Unhealthy'}</span>
-                            </div>
-                        )}
-                        {aiHealth && (
-                            <div style={{ 
-                                fontSize: '10px', 
-                                padding: '4px 8px', 
-                                borderRadius: '12px',
-                                background: aiHealth === 'healthy' ? '#D1FAE5' : '#FEE2E2',
-                                color: aiHealth === 'healthy' ? '#065F46' : '#991B1B',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                            }}>
-                                {aiHealth === 'healthy' ? <CheckCircle size={12} /> : aiHealth === 'unreachable' ? <XCircle size={12} /> : <AlertTriangle size={12} />}
-                                <span>AI: {aiHealth === 'healthy' ? 'Ready' : aiHealth === 'unreachable' ? 'Offline' : 'Unhealthy'}</span>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
@@ -897,58 +987,26 @@ const FinancialHealth = () => {
 
             {/* AI Query Section */}
             <div className="fh-ai-query-section">
-                <div className="fh-ai-search-bar">
-                    <form onSubmit={handleAIQuestionSubmit} style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '10px' }}>
-                        <Search size={18} className="fh-search-icon" />
-                        <input
-                            type="text"
-                            className="fh-ai-search-input"
-                            value={aiQuestion}
-                            onChange={(e) => setAiQuestion(e.target.value)}
-                            placeholder="Ask a question about your financial data..."
-                            disabled={aiLoading}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !aiLoading && aiQuestion.trim()) {
-                                    e.preventDefault();
-                                    handleAIQuestionSubmit(e);
-                                }
-                            }}
-                        />
-                        <button 
-                            type="submit" 
-                            disabled={aiLoading || !aiQuestion.trim()}
-                            style={{ 
-                                background: aiLoading ? '#E5E7EB' : '#1B5B7E', 
-                                border: 'none', 
-                                cursor: aiLoading || !aiQuestion.trim() ? 'not-allowed' : 'pointer',
-                                padding: '8px 16px',
-                                borderRadius: '20px',
-                                color: aiLoading ? '#9CA3AF' : '#FFFFFF',
-                                fontWeight: '600',
-                                fontSize: '14px',
-                                minWidth: '60px',
-                                flexShrink: 0
-                            }}
-                            title={!aiQuestion.trim() ? 'Enter a question first' : 'Submit question'}
-                        >
-                            {aiLoading ? '...' : 'Ask'}
-                        </button>
-                    </form>
-                </div>
+                {/* On first load (no interaction yet), show input above. After interaction, input moves below. */}
+                {aiChatHistory.length === 0 && !aiResponse && !aiLoading && !aiError && renderAiSearchBar()}
+
                 <div className="fh-ai-response-box">
                     {aiLoading && (
                         <div style={{ textAlign: 'center', padding: '20px', color: '#1B5B7E' }}>
                             <p>Analyzing your question...</p>
                         </div>
                     )}
+
                     {aiError && (
-                        <div style={{ 
-                            color: '#DC2626', 
-                            padding: '15px', 
-                            background: '#FEE2E2',
-                            borderRadius: '5px',
-                            marginBottom: '10px'
-                        }}>
+                        <div
+                            style={{
+                                color: '#DC2626',
+                                padding: '15px',
+                                background: '#FEE2E2',
+                                borderRadius: '5px',
+                                marginBottom: '10px'
+                            }}
+                        >
                             <strong>Error:</strong> {aiError}
                             <div style={{ fontSize: '12px', marginTop: '8px', color: '#991B1B' }}>
                                 <p>💡 Troubleshooting:</p>
@@ -961,10 +1019,221 @@ const FinancialHealth = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* Chat history thread (each turn includes question, answer, and, for past turns, any SQL/results) */}
+                    {aiChatHistory.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '10px' }}>
+                            {aiChatHistory.map((turn, idx) => {
+                                const isLastTurn = idx === aiChatHistory.length - 1;
+                                const hasStructuredData =
+                                    turn && turn.type !== 'text' && (turn.sql || (turn.data && Array.isArray(turn.data) && turn.data.length > 0));
+                                const parsed = hasStructuredData ? parseSummary(turn.summary) : null;
+                                const tableData =
+                                    hasStructuredData && turn.data && Array.isArray(turn.data) && turn.data.length > 0
+                                        ? formatTableData(turn.data)
+                                        : null;
+
+                                return (
+                                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        {/* User question bubble */}
+                                        <div
+                                            style={{
+                                                alignSelf: 'flex-end',
+                                                maxWidth: '80%',
+                                                padding: '8px 12px',
+                                                borderRadius: '16px',
+                                                background: '#1B5B7E',
+                                                color: '#FFFFFF',
+                                                fontSize: '13px',
+                                                lineHeight: 1.5
+                                            }}
+                                        >
+                                            {turn.question}
+                                        </div>
+
+                                        {/* Assistant high-level answer bubble */}
+                                        <div
+                                            style={{
+                                                alignSelf: 'flex-start',
+                                                maxWidth: '90%',
+                                                padding: '10px 14px',
+                                                borderRadius: '12px',
+                                                background: '#F0F9FF',
+                                                border: '1px solid #BAE6FD',
+                                                color: '#374151',
+                                                fontSize: '13px',
+                                                lineHeight: 1.6
+                                            }}
+                                        >
+                                            {turn.summary}
+                                        </div>
+
+                                        {/* Optional per-turn insight / SQL / table.
+                                            To avoid duplicating the "live" answer UI, we only show this
+                                            for history items, not the most recent turn. */}
+                                        {hasStructuredData && !isLastTurn && (
+                                            <div
+                                                style={{
+                                                    alignSelf: 'stretch',
+                                                    maxWidth: '100%',
+                                                    padding: '10px 12px',
+                                                    borderRadius: '10px',
+                                                    background: '#F9FAFB',
+                                                    border: '1px solid #E5E7EB',
+                                                    marginTop: '2px'
+                                                }}
+                                            >
+                                                {/* AI Insight block */}
+                                                {parsed && parsed.other && parsed.other.length > 0 && (
+                                                    <div
+                                                        style={{
+                                                            background: '#F0F9FF',
+                                                            border: '1px solid #BAE6FD',
+                                                            borderRadius: '8px',
+                                                            padding: '10px',
+                                                            marginBottom: tableData || turn.sql ? '10px' : 0,
+                                                            lineHeight: 1.6
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                fontSize: '13px',
+                                                                fontWeight: 600,
+                                                                color: '#1B5B7E',
+                                                                marginBottom: '6px'
+                                                            }}
+                                                        >
+                                                            AI Insight
+                                                        </div>
+                                                        {parsed.other.map((line, i) => (
+                                                            <div
+                                                                key={i}
+                                                                style={{
+                                                                    fontSize: '12px',
+                                                                    color: '#374151',
+                                                                    marginBottom: i < parsed.other.length - 1 ? '4px' : 0
+                                                                }}
+                                                            >
+                                                                {line}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Query results table, if available */}
+                                                {tableData && (
+                                                    <div style={{ marginTop: parsed && parsed.other.length > 0 ? '4px' : 0 }}>
+                                                        <h4
+                                                            style={{
+                                                                fontSize: '13px',
+                                                                fontWeight: 600,
+                                                                color: '#1B5B7E',
+                                                                marginBottom: '8px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '6px'
+                                                            }}
+                                                        >
+                                                            Query Results ({tableData.rows.length} rows)
+                                                        </h4>
+                                                        <div style={{ overflowX: 'auto' }}>
+                                                            <table
+                                                                className="fh-ai-history-table"
+                                                                style={{
+                                                                    width: '100%',
+                                                                    borderCollapse: 'collapse',
+                                                                    background: '#FFFFFF',
+                                                                    fontSize: '12px'
+                                                                }}
+                                                            >
+                                                                <thead>
+                                                                    <tr>
+                                                                        {tableData.columns.map((col) => (
+                                                                            <th
+                                                                                key={col}
+                                                                                style={{
+                                                                                    padding: '8px 10px',
+                                                                                    textAlign: 'left',
+                                                                                    fontWeight: 600,
+                                                                                    color: '#1B5B7E',
+                                                                                    fontSize: '11px',
+                                                                                    textTransform: 'uppercase',
+                                                                                    letterSpacing: '0.4px',
+                                                                                    borderBottom: '1px solid #E5E7EB'
+                                                                                }}
+                                                                            >
+                                                                                {col.replace(/_/g, ' ')}
+                                                                            </th>
+                                                                        ))}
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {tableData.rows.map((row, rowIdx) => (
+                                                                        <tr key={rowIdx} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                                                                            {tableData.columns.map((col) => (
+                                                                                <td
+                                                                                    key={col}
+                                                                                    style={{
+                                                                                        padding: '8px 10px',
+                                                                                        color: '#374151',
+                                                                                        fontSize: '11px'
+                                                                                    }}
+                                                                                >
+                                                                                    {formatNumber(row[col])}
+                                                                                </td>
+                                                                            ))}
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Generated SQL, collapsed per turn */}
+                                                {turn.sql && (
+                                                    <details style={{ marginTop: '8px' }}>
+                                                        <summary
+                                                            style={{
+                                                                cursor: 'pointer',
+                                                                color: '#689EC2',
+                                                                fontWeight: 600,
+                                                                fontSize: '12px'
+                                                            }}
+                                                        >
+                                                            Generated SQL Query
+                                                        </summary>
+                                                        <pre
+                                                            style={{
+                                                                background: '#1F2937',
+                                                                color: '#F9FAFB',
+                                                                padding: '10px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '11px',
+                                                                overflow: 'auto',
+                                                                fontFamily: 'Monaco, "Courier New", monospace',
+                                                                marginTop: '6px'
+                                                            }}
+                                                        >
+                                                            {turn.sql}
+                                                        </pre>
+                                                    </details>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Detailed view for the latest response (tables, SQL, etc.) */}
                     {aiResponse && !aiLoading && (
                         <div>
-                            {/* Conversational response (not SQL) */}
-                            {aiResponse.isConversational && (
+                            {/* Conversational response (not SQL).
+                                Once we have chat history, the plain text lives in the bubbles above
+                                so we only render this block when there is no history yet. */}
+                            {aiResponse.isConversational && aiChatHistory.length === 0 && (
                                 <div>
                                     <h3 style={{ 
                                         fontSize: '16px', 
@@ -1020,7 +1289,7 @@ const FinancialHealth = () => {
                                         <strong><AlertTriangle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Note:</strong> {aiResponse.summary || aiResponse.error}
                                     </div>
                                     {aiResponse.sql && (
-                                        <details open style={{ marginTop: '10px' }}>
+                                        <details style={{ marginTop: '10px' }}>
                                             <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
                                                 <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Generated SQL Query
                                             </summary>
@@ -1058,43 +1327,13 @@ const FinancialHealth = () => {
                                             gap: '8px'
                                         }}>
                                             <Lightbulb size={18} color="#1B5B7E" />
-                                            AI Analysis
+                                            AI Response
                                         </h3>
-                                        
-                                        {/* 1. SQL Query - Show First */}
-                                        {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
-                                            <div style={{ marginBottom: '25px' }}>
-                                                <h4 style={{ 
-                                                    fontSize: '14px', 
-                                                    fontWeight: '600', 
-                                                    color: '#1B5B7E',
-                                                    marginBottom: '10px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px'
-                                                }}>
-                                                    <Search size={16} color="#689EC2" />
-                                                    Generated SQL Query
-                                                </h4>
-                                                <pre style={{ 
-                                                    background: '#1F2937', 
-                                                    color: '#F9FAFB',
-                                                    padding: '15px', 
-                                                    borderRadius: '8px',
-                                                    fontSize: '13px',
-                                                    overflow: 'auto',
-                                                    fontFamily: 'Monaco, "Courier New", monospace',
-                                                    lineHeight: '1.6',
-                                                    border: '1px solid #374151',
-                                                    margin: 0
-                                                }}>
-                                                    {aiResponse.sql}
-                                                </pre>
-                                            </div>
-                                        )}
-                                        
-                                        {/* 2. Based on the Question */}
-                                        {parsedSummary.question && (
+
+                                        {/* We now show the question/answer text in the chat bubbles above.
+                                            Keep this block for the very first interaction only so content
+                                            isn't duplicated. */}
+                                        {parsedSummary.question && aiChatHistory.length === 0 && (
                                             <div style={{ 
                                                 background: '#F0F9FF',
                                                 border: '1px solid #BAE6FD',
@@ -1120,7 +1359,62 @@ const FinancialHealth = () => {
                                                 </p>
                                             </div>
                                         )}
-                                        
+
+                                        {/* Generated SQL Query (collapsed by default) */}
+                                        {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
+                                            <details style={{ marginTop: '10px', marginBottom: '25px' }}>
+                                                <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
+                                                    <Search size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
+                                                    Generated SQL Query
+                                                </summary>
+                                                <pre style={{ 
+                                                    background: '#1F2937', 
+                                                    color: '#F9FAFB',
+                                                    padding: '15px', 
+                                                    borderRadius: '8px',
+                                                    fontSize: '13px',
+                                                    overflow: 'auto',
+                                                    fontFamily: 'Monaco, "Courier New", monospace',
+                                                    lineHeight: '1.6',
+                                                    border: '1px solid #374151',
+                                                    marginTop: '10px',
+                                                    marginBottom: 0
+                                                }}>
+                                                    {aiResponse.sql}
+                                                </pre>
+                                            </details>
+                                        )}
+
+                                        {/* AI Insight narrative (above query results) */}
+                                        {parsedSummary.other.length > 0 && (
+                                            <div style={{ 
+                                                background: '#F0F9FF',
+                                                border: '1px solid #BAE6FD',
+                                                borderRadius: '8px',
+                                                padding: '15px',
+                                                marginBottom: '20px',
+                                                lineHeight: '1.6'
+                                            }}>
+                                                <h4 style={{ 
+                                                    fontSize: '14px', 
+                                                    fontWeight: '600', 
+                                                    color: '#1B5B7E',
+                                                    marginBottom: '10px'
+                                                }}>
+                                                    AI Insight
+                                                </h4>
+                                                {parsedSummary.other.map((line, idx) => (
+                                                    <div key={idx} style={{ 
+                                                        marginBottom: idx < parsedSummary.other.length - 1 ? '10px' : 0,
+                                                        color: '#374151',
+                                                        fontSize: '13px'
+                                                    }}>
+                                                        {line}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         {/* 3. Query Results Table */}
                                         {tableData && (
                                             <div style={{ marginBottom: '20px' }}>
@@ -1349,30 +1643,10 @@ const FinancialHealth = () => {
                                             </div>
                                         )}
                                         
-                                        {/* Other content if any */}
-                                        {parsedSummary.other.length > 0 && (
-                                            <div style={{ 
-                                                background: '#F0F9FF',
-                                                border: '1px solid #BAE6FD',
-                                                borderRadius: '8px',
-                                                padding: '15px',
-                                                marginTop: '20px',
-                                                lineHeight: '1.6'
-                                            }}>
-                                                {parsedSummary.other.map((line, idx) => (
-                                                    <div key={idx} style={{ 
-                                                        marginBottom: '8px',
-                                                        color: '#374151',
-                                                        fontSize: '13px'
-                                                    }}>
-                                                        {line}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 );
                             })()}
+                            {/* (removed duplicate "Conversation history" block to avoid showing chat twice) */}
                             
                             {/* Response with data but no summary */}
                             {!aiResponse.summary && !aiResponse.isConversational && aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 && (() => {
@@ -1538,7 +1812,8 @@ const FinancialHealth = () => {
                             )}
                         </div>
                     )}
-                    {!aiResponse && !aiLoading && !aiError && (
+                    {/* Initial helper content only when there is no chat yet */}
+                    {!aiResponse && !aiLoading && !aiError && aiChatHistory.length === 0 && (
                         <div>
                             <h3>1. Revenue Performance Overview:</h3>
                             <p>
@@ -1562,6 +1837,9 @@ const FinancialHealth = () => {
                         </div>
                     )}
                 </div>
+
+                {/* After at least one answered question, keep the input anchored to the bottom */}
+                {aiChatHistory.length > 0 && renderAiSearchBar()}
             </div>
 
             {/* Section Title */}

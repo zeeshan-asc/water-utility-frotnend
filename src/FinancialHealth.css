@@ -18,6 +18,13 @@
     padding-left: 0;
 }
 
+.fh-page-header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 @media (min-width: 768px) {
     .fh-page-header {
         padding-left: 20px;
@@ -186,6 +193,7 @@
     gap: 10px;
     margin: 0;
     padding: 0;
+    flex-wrap: wrap;
 }
 
 .fh-search-icon {
@@ -252,12 +260,18 @@
     font-weight: 700;
 }
 
+.fh-ai-response-box {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .fh-ai-response-box table {
     width: 100%;
     border-collapse: collapse;
     background: #FFFFFF;
     font-size: 13px;
     margin: 0;
+    min-width: 500px;
 }
 
 .fh-ai-response-box table thead tr {
@@ -1232,7 +1246,11 @@
     border-radius: 62px;
 }
 
-/* Responsive Design */
+/* ===================================
+   Responsive Design
+   =================================== */
+
+/* Large Desktop (1400px and below) */
 @media (max-width: 1400px) {
     .fh-performance-grid {
         grid-template-columns: 1fr 1fr;
@@ -1241,7 +1259,6 @@
     .fh-scenario-panel {
         grid-column: 1 / -1;
         grid-row: auto;
-        /* Reset row span */
     }
 
     .fh-scenario-header {
@@ -1269,32 +1286,645 @@
     }
 }
 
+/* Tablet and Medium Screens (900px and below) */
 @media (max-width: 900px) {
+    .financial-health-container {
+        padding: 20px 30px;
+        width: 95%;
+    }
+
+    .fh-page-header {
+        margin-bottom: 20px;
+    }
+
+    .fh-page-header-wrapper {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+
+    .fh-brand-title {
+        font-size: 24px;
+    }
+
+    .fh-brand-subtitle {
+        font-size: 12px;
+    }
 
     .fh-performance-grid,
     .fh-debt-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
 
     .fh-intelligence-grid,
     .fh-alerts-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .fh-kpi-grid-row1,
+    .fh-kpi-grid-row2 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .fh-kpi-card {
+        padding: 12px;
+    }
+
+    .fh-kpi-value {
+        font-size: 18px;
+    }
+
+    .fh-kpi-label {
+        font-size: 11px;
+    }
+
+    .fh-kpi-change {
+        font-size: 11px;
+    }
+
+    .fh-tab-navigation {
+        width: 100%;
+        padding: 4px;
+        margin: 20px auto;
+        flex-wrap: wrap;
+    }
+
+    .fh-tab {
+        font-size: 12px;
+        padding: 6px 4px;
+        min-width: 0;
+    }
+
+    .fh-ai-query-section {
+        padding: 15px;
+    }
+
+    .fh-ai-search-bar {
+        padding: 8px 15px;
+        flex-wrap: wrap;
+    }
+
+    .fh-ai-search-bar form {
+        flex-wrap: wrap;
+    }
+
+    .fh-ai-search-input {
+        font-size: 14px;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .fh-ai-search-bar form button {
+        flex-shrink: 0;
+    }
+
+    .fh-section-title {
+        font-size: 20px;
+    }
+
+    .fh-chart-card {
+        padding: 15px;
+    }
+
+    .fh-chart-title {
+        font-size: 12px;
+    }
+
+    .fh-chart-subtitle {
+        font-size: 9px;
+    }
+
+    .fh-budget-variance-card {
+        padding: 15px;
+    }
+
+    .fh-scenario-panel {
+        padding: 15px;
+    }
+
+    .fh-intel-card,
+    .fh-alert-card {
+        padding: 15px;
+        flex-direction: column;
+    }
+
+    .fh-intel-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .fh-intel-title {
+        font-size: 11px;
+    }
+
+    .fh-intel-insight,
+    .fh-intel-recommendation {
+        font-size: 9px;
+    }
+
+    .fh-alert-title {
+        font-size: 12px;
+    }
+
+    .fh-alert-text {
+        font-size: 11px;
+    }
+
+    .fh-ai-response-box {
+        padding: 15px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .fh-ai-response-box table {
+        font-size: 11px;
+        min-width: 400px;
+    }
+
+    .fh-ai-search-bar form button {
+        min-width: 50px;
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+/* Mobile Devices (640px and below) */
+@media (max-width: 640px) {
+    .financial-health-container {
+        padding: 15px 20px;
+        width: 100%;
+    }
+
+    .fh-page-header {
+        margin-bottom: 15px;
+        padding-left: 0;
+    }
+
+    .fh-brand-title {
+        font-size: 20px;
+        line-height: 1.2;
+    }
+
+    .fh-brand-subtitle {
+        font-size: 11px;
+        margin-top: 4px;
     }
 
     .fh-kpi-grid-row1,
     .fh-kpi-grid-row2 {
         grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .fh-kpi-card {
+        padding: 10px;
+    }
+
+    .fh-kpi-value {
+        font-size: 16px;
+    }
+
+    .fh-kpi-label {
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+
+    .fh-kpi-change {
+        font-size: 10px;
     }
 
     .fh-tab-navigation {
-        width: calc(100% - 100px);
-        max-width: 1340px;
-        left: 50%;
-        transform: translateX(-50%);
-        position: relative;
-        margin: 30px auto;
-        flex-direction: column;
-        align-items: stretch;
+        padding: 3px;
+        margin: 15px auto;
+        border-radius: 20px;
+    }
+
+    .fh-tab {
+        font-size: 11px;
+        padding: 6px 2px;
+    }
+
+    .fh-ai-query-section {
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+
+    .fh-ai-search-bar {
+        padding: 6px 12px;
+        border-radius: 24px;
+    }
+
+    .fh-ai-search-bar form {
+        gap: 8px;
+    }
+
+    .fh-search-icon {
+        margin-right: 6px;
+        flex-shrink: 0;
+    }
+
+    .fh-ai-search-input {
+        font-size: 13px;
+        flex: 1 1 auto;
+        min-width: 150px;
+    }
+
+    .fh-ai-search-bar form button {
+        flex-shrink: 0;
+        min-width: 50px;
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .fh-ai-search-input::placeholder {
+        font-size: 12px;
+    }
+
+    .fh-ai-response-box {
+        padding: 12px;
+        font-size: 12px;
+    }
+
+    .fh-ai-response-box h3 {
+        font-size: 13px;
+        margin: 12px 0 6px;
+    }
+
+    .fh-ai-response-box p {
+        font-size: 12px;
+        margin: 6px 0;
+    }
+
+    .fh-ai-response-box ul {
+        padding-left: 20px;
+    }
+
+    .fh-ai-response-box li {
+        font-size: 12px;
+        margin: 4px 0;
+    }
+
+    .fh-ai-response-box table {
+        font-size: 10px;
+        min-width: 300px;
+    }
+
+    .fh-ai-response-box table th,
+    .fh-ai-response-box table td {
+        padding: 8px 10px;
+        font-size: 10px;
+    }
+
+    .fh-section-header {
+        margin: 30px 0 15px;
+    }
+
+    .fh-section-title {
+        font-size: 18px;
+        flex-wrap: wrap;
+    }
+
+    .fh-title-icon {
+        width: 28px;
+        height: 32px;
+        font-size: 20px;
+    }
+
+    .fh-performance-grid,
+    .fh-debt-grid {
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    .fh-chart-card {
+        padding: 12px;
+    }
+
+    .fh-chart-header {
+        margin-bottom: 12px;
+    }
+
+    .fh-chart-title {
+        font-size: 11px;
+    }
+
+    .fh-chart-subtitle {
+        font-size: 8px;
+    }
+
+    .fh-chart-legend {
+        gap: 10px;
+        margin-top: 6px;
+    }
+
+    .fh-legend-item {
+        font-size: 9px;
+    }
+
+    .fh-chart-y-label {
+        font-size: 8px;
+        left: 8px;
+    }
+
+    .fh-budget-variance-card {
+        padding: 12px;
+        min-height: auto;
+    }
+
+    .fh-budget-variance-title {
+        font-size: 12px;
+    }
+
+    .fh-budget-variance-subtitle {
+        font-size: 9px;
+    }
+
+    .fh-ai-confidence-badge {
+        width: auto;
+        height: 18px;
+        top: 12px;
+        right: 12px;
+        padding: 0 6px;
+    }
+
+    .fh-confidence-label,
+    .fh-confidence-value {
+        font-size: 7px;
+    }
+
+    .fh-budget-variance-legend {
+        gap: 10px;
+        margin-top: 6px;
+        margin-bottom: 12px;
+    }
+
+    .fh-legend-text {
+        font-size: 9px;
+    }
+
+    .fh-budget-variance-chart-container {
+        height: 150px;
+        margin: 8px 0;
+    }
+
+    .fh-scenario-panel {
+        padding: 12px;
+    }
+
+    .fh-scenario-header {
+        margin-bottom: 15px;
+    }
+
+    .fh-scenario-title {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    .fh-scenario-tabs {
+        max-width: 100%;
+        height: auto;
+        padding: 3px;
+    }
+
+    .fh-scenario-tab {
+        font-size: 9px;
+        padding: 4px 2px;
+    }
+
+    .fh-scenario-inputs-container {
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .fh-input-label-row {
+        font-size: 9px;
+        margin-bottom: 6px;
+    }
+
+    .fh-input-value {
+        font-size: 9px;
+    }
+
+    .fh-slider {
+        height: 6px;
+    }
+
+    .fh-slider::-webkit-slider-thumb {
+        width: 6px;
+        height: 6px;
+    }
+
+    .fh-slider::-moz-range-thumb {
+        width: 6px;
+        height: 6px;
+    }
+
+    .fh-impact-text {
+        font-size: 9px;
+        margin-top: 4px;
+    }
+
+    .fh-scenario-name-input {
+        height: 20px;
+        padding: 0 10px;
+        font-size: 9px;
+    }
+
+    .fh-save-btn {
+        font-size: 9px;
+    }
+
+    .fh-scenario-impact-box,
+    .fh-key-insights-box {
+        padding: 10px 12px;
+        min-height: auto;
+        margin: 12px 0 15px 0;
+    }
+
+    .fh-impact-header,
+    .fh-insights-header {
+        font-size: 9px;
+        margin-bottom: 8px;
+    }
+
+    .fh-impact-row {
+        font-size: 9px;
+        line-height: 24px;
+        margin: 3px 0;
+    }
+
+    .fh-insight-item {
+        font-size: 9px;
+        margin: 4px 0;
+        padding-left: 14px;
+    }
+
+    .fh-intelligence-grid,
+    .fh-alerts-grid {
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    .fh-intel-card {
+        padding: 12px;
+    }
+
+    .fh-intel-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .fh-intel-title {
+        font-size: 10px;
+        margin-bottom: 6px;
+    }
+
+    .fh-intel-insight,
+    .fh-intel-recommendation {
+        font-size: 8px;
+        line-height: 1.6;
+        margin-bottom: 6px;
+    }
+
+    .fh-intel-btn {
+        padding: 6px 12px;
+        font-size: 9px;
+        margin-top: 8px;
+    }
+
+    .fh-alert-card {
+        padding: 12px;
+    }
+
+    .fh-alert-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .fh-alert-title {
+        font-size: 11px;
+        margin-bottom: 8px;
+    }
+
+    .fh-alert-text {
+        font-size: 10px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+
+    .fh-alert-confidence {
+        font-size: 10px;
+        margin-bottom: 4px;
+    }
+
+    .fh-confidence-bar-container {
+        height: 6px;
+    }
+
+    .fh-ar-aging-bars {
+        padding: 12px 0;
+    }
+
+    .fh-ar-row {
+        margin-bottom: 15px;
+    }
+
+    .fh-ar-label {
+        font-size: 10px;
+        margin-bottom: 4px;
+    }
+
+    .fh-ar-percent {
+        font-size: 10px;
+    }
+
+    .fh-ar-bar-container {
+        height: 9px;
+        margin-top: 4px;
+    }
+
+    .fh-summary-card {
+        padding: 12px;
+    }
+
+    .fh-summary-list {
+        margin-top: 12px;
+    }
+
+    .fh-summary-row {
+        padding: 8px 0;
+        font-size: 10px;
+    }
+
+    .fh-summary-row.highlight {
+        padding: 8px;
+        margin-top: 8px;
+    }
+
+    .fh-progress-indicator {
+        height: 12px;
+        margin-top: 20px;
+    }
+
+    .fh-ai-summary-box {
+        padding: 5px 6px;
+        margin-top: 12px;
+    }
+
+    .fh-ai-summary-box p {
+        font-size: 8px;
+        line-height: 11px;
+    }
+}
+
+/* Extra Small Mobile Devices (480px and below) */
+@media (max-width: 480px) {
+    .financial-health-container {
+        padding: 12px 15px;
+    }
+
+    .fh-brand-title {
+        font-size: 18px;
+    }
+
+    .fh-brand-subtitle {
+        font-size: 10px;
+    }
+
+    .fh-tab {
+        font-size: 10px;
+        padding: 5px 1px;
+    }
+
+    .fh-kpi-value {
+        font-size: 14px;
+    }
+
+    .fh-section-title {
+        font-size: 16px;
+    }
+
+    .fh-ai-search-input {
+        font-size: 12px;
+        min-width: 120px;
+    }
+
+    .fh-ai-search-bar form button {
+        font-size: 11px;
+        padding: 5px 10px;
+        min-width: 45px;
+    }
+
+    .fh-chart-card {
+        padding: 10px;
+    }
+
+    .fh-budget-variance-chart-container {
+        height: 120px;
     }
 }
 

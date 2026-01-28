@@ -579,77 +579,19 @@
 .oc-lab-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 16px;
     margin-bottom: 40px;
 }
 
 @media (min-width: 768px) {
     .oc-lab-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .oc-lab-card {
-        height: auto;
-        min-height: 228px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1200px) {
     .oc-lab-grid {
-        grid-template-columns: 1fr 2.3fr 2.3fr 1.8fr;
-        align-items: start;
-    }
-
-    .oc-lab-card {
-        height: 227.99px;
-        min-height: 227.99px;
-        max-height: 227.99px;
-        overflow: hidden;
-        width: 400.14px;
-    }
-
-    .oc-gauge-container {
-        width: 209.38px;
-        min-height: 200.07px;
-        height: 200.07px;
-        max-height: 200.07px;
-        top: 58.16px;
-    }
-
-    .oc-gauge-overlay {
-        top: 55.18px;
-    }
-
-    .oc-gauge-value-container {
-        top: 76.12px;
-    }
-
-    .oc-gauge-minmax {
-        bottom: 36.16px;
-    }
-
-    .oc-gauge-footer {
-        bottom: 6px;
-    }
-
-    .oc-gauge-label {
-        font-size: 12px;
-    }
-
-    .oc-gauge-value {
-        font-size: 32px;
-    }
-
-    .oc-gauge-subtext {
-        font-size: 11px;
-    }
-
-    .oc-gauge-target-label {
-        font-size: 11px;
-    }
-
-    .oc-gauge-footer {
-        font-size: 11px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
@@ -902,9 +844,9 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    min-height: 350px;
+    min-height: 260px;
     box-sizing: border-box;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .oc-lab-card-title {
@@ -1492,137 +1434,7 @@
     background: #DC2626;
 }
 
-/* Lab Operational Readiness */
-.oc-lab-grid {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr 1fr 1.4fr;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.oc-lab-card {
-    background: white;
-    border: 1px solid #E5E7EB;
-    padding: 18px;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    text-align: center;
-}
-
-.oc-lab-card-double {
-    background: white;
-    border: 1px solid #E5E7EB;
-    padding: 18px;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.oc-lab-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: #1B5B7E;
-    margin-bottom: 10px;
-}
-
-.oc-lab-value {
-    font-size: 26px;
-    font-weight: 700;
-    color: #1B5B7E;
-    margin: 8px 0;
-}
-
-.oc-lab-label {
-    font-size: 10px;
-    color: #6B7280;
-}
-
-.oc-circular-chart {
-    display: block;
-    margin: 10px auto 0;
-}
-
-.oc-lab-metric-row {
-    display: flex;
-    gap: 20px;
-}
-
-.oc-lab-metric {
-    flex: 1;
-    text-align: center;
-}
-
-/* Sampling Compliance Status */
-.oc-sampling-section {
-    margin-bottom: 25px;
-}
-
-.oc-sampling-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-}
-
-.oc-sampling-card {
-    background: white;
-    border: 1px solid #E5E7EB;
-    border-left: 4px solid #689EC2;
-    padding: 16px;
-    border-radius: 0 6px 6px 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.oc-sampling-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 8px;
-}
-
-.oc-sampling-detail {
-    font-size: 10px;
-    color: #6B7280;
-    margin-bottom: 10px;
-}
-
-.oc-completion-badge {
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 9px;
-    font-weight: 600;
-    border: 1px solid;
-    float: right;
-}
-
-.oc-completion-badge.complete {
-    background: rgba(22, 163, 74, 0.1);
-    border-color: #16A34A;
-    color: #16A34A;
-}
-
-.oc-completion-badge.in-progress {
-    background: rgba(253, 156, 70, 0.1);
-    border-color: #FD9C46;
-    color: #FD9C46;
-}
-
-.oc-completion-badge.critical {
-    background: rgba(220, 38, 38, 0.1);
-    border-color: #DC2626;
-    color: #DC2626;
-}
-
-.oc-sampling-progress {
-    height: 10px;
-    background: #E5E7EB;
-    border-radius: 10px;
-    margin-top: 12px;
-    overflow: hidden;
-}
-
-.oc-sampling-progress-fill {
-    height: 100%;
-    border-radius: 10px;
-}
+/* (old duplicate Lab Operational Readiness & Sampling card styles removed in favor of responsive .oc-lab-grid and .oc-sampling-section above) */
 
 /* Advanced Charts Styling */
 .oc-chart-header-row {
@@ -2512,4 +2324,107 @@
     align-items: center;
     color: #1B5B7E;
     margin-top: 15px;
+}
+
+/* ===================================
+   Global Responsive Tweaks
+   (fills gaps not covered by section-specific breakpoints)
+   =================================== */
+
+@media (max-width: 900px) {
+    .operations-compliance-container {
+        width: 95%;
+        padding: 20px 30px;
+    }
+
+    .oc-brand-title {
+        font-size: 24px;
+    }
+
+    .oc-brand-subtitle {
+        font-size: 12px;
+    }
+
+    .oc-section-title {
+        font-size: 20px;
+        margin: 30px 0 20px 0;
+    }
+
+    .oc-search-bar {
+        height: auto;
+        padding: 10px 16px;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .oc-search-text {
+        font-size: 13px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 640px) {
+    .operations-compliance-container {
+        width: 100%;
+        padding: 15px 20px;
+    }
+
+    .oc-page-header {
+        margin-bottom: 15px;
+        padding-left: 0;
+    }
+
+    .oc-brand-title {
+        font-size: 20px;
+    }
+
+    .oc-brand-subtitle {
+        font-size: 11px;
+        margin-top: 4px;
+    }
+
+    .oc-ai-response-box {
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .oc-chart-card {
+        padding: 12px;
+    }
+
+    .oc-maintenance-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px 16px;
+    }
+
+    .oc-status-badge {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .operations-compliance-container {
+        padding: 12px 15px;
+    }
+
+    .oc-section-title {
+        font-size: 18px;
+    }
+
+    .oc-search-bar {
+        padding: 8px 12px;
+        gap: 10px;
+    }
+
+    .oc-search-text {
+        font-size: 12px;
+        -webkit-line-clamp: 3;
+    }
 }
