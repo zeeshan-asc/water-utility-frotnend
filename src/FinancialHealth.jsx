@@ -280,7 +280,7 @@ const FinancialHealth = () => {
         return json.data;
     };
 
-    // Fetch AI response with progressive streaming
+    // Fetch AI response with progressive disclosure (instant text, no streaming)
     const fetchAIResponse = async (question) => {
         const updateLastTurn = (updates) => {
             setAiChatHistory(prev => {
@@ -290,17 +290,6 @@ const FinancialHealth = () => {
                 }
                 return next;
             });
-        };
-
-        const streamText = async (text) => {
-            if (!text) return;
-            let current = '';
-            for (let i = 0; i < text.length; i++) {
-                current += text[i];
-                updateLastTurn({ summary: current });
-                // Slow down slightly for typewriter effect
-                await new Promise(r => setTimeout(r, 10));
-            }
         };
 
         try {
@@ -346,8 +335,7 @@ const FinancialHealth = () => {
                 (sql && (sql.includes('not allowed') || sql.includes('error') || sql.includes('LLM')));
 
             if (isTextResponse && sql) {
-                await streamText(sql);
-                updateLastTurn({ isStreaming: false });
+                updateLastTurn({ summary: sql, isStreaming: false });
                 setAiLoading(false);
                 return;
             }
@@ -386,13 +374,13 @@ const FinancialHealth = () => {
                 if (summaryResponse.ok) {
                     const summaryJson = await summaryResponse.json();
                     const summary = summaryJson.summary || summaryJson.text || summaryJson.data?.summary || summaryJson.data;
-                    await streamText(summary || 'Analysis complete.');
+                    updateLastTurn({ summary: summary || 'Analysis complete.' });
                 } else {
-                    await streamText('Query completed, but summary generation failed.');
+                    updateLastTurn({ summary: 'Query completed, but summary generation failed.' });
                 }
             } catch (summaryErr) {
                 console.warn('Summary error:', summaryErr);
-                await streamText('Results fetched successfully.');
+                updateLastTurn({ summary: 'Results fetched successfully.' });
             }
 
             updateLastTurn({ isStreaming: false });
@@ -671,10 +659,8 @@ const FinancialHealth = () => {
 
         const trimmed = aiQuestion.trim();
         if (trimmed) {
-            console.log('Calling fetchAIResponse with:', trimmed);
+            setAiQuestion(''); // Clear immediately for best UX
             fetchAIResponse(trimmed);
-            // Clear the input so only the placeholder/watermark is visible after submit
-            setAiQuestion('');
         } else {
             console.warn('Question is empty, not submitting');
             setAiError('Please enter a question');
@@ -976,8 +962,8 @@ const FinancialHealth = () => {
                                     <button
                                         key={i}
                                         onClick={() => {
-                                            setAiQuestion(suggestion);
                                             fetchAIResponse(suggestion);
+                                            setAiQuestion('');
                                         }}
                                         className="fh-suggestion-chip"
                                         style={{
@@ -1021,12 +1007,60 @@ const FinancialHealth = () => {
                                 {/* Assistant Message */}
                                 <div className="fh-chat-message assistant">
                                     <div className="fh-chat-bubble assistant">
-                                        {/* Simple text for non-structured or previous turns summary */}
-                                        {!isLast ? (
-                                            <div>{turn.summary}</div>
-                                        ) : (
-                                            /* Rich rendering for the latest turn */
-                                            <div style={{ width: '100%' }}>
+                                        <div style={{ width: '100%' }}>
+                                            {/* SQL Toggle (Query - Top) */}
+                                            {turn.sql && (
+                                                <details style={{ marginBottom: '15px' }}>
+                                                    <summary style={{ fontSize: '12px', cursor: 'pointer', color: '#689EC2', fontWeight: 600 }}>View Generated Query</summary>
+                                                    <pre style={{
+                                                        fontSize: '11px',
+                                                        background: '#1F2937',
+                                                        color: '#F9FAFB',
+                                                        padding: '12px',
+                                                        borderRadius: '8px',
+                                                        overflow: 'auto',
+                                                        marginTop: '10px'
+                                                    }}>
+                                                        {turn.sql}
+                                                    </pre>
+                                                </details>
+                                            )}
+
+                                            {/* Table (Data - Middle) */}
+                                            {tableData && (
+                                                <div style={{ marginBottom: '15px' }}>
+                                                    <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                                            <thead style={{ background: '#F9FAFB' }}>
+                                                                <tr>
+                                                                    {tableData.columns.slice(0, 5).map(col => (
+                                                                        <th key={col} style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #E5E7EB', color: '#1B5B7E' }}>
+                                                                            {col.replace(/_/g, ' ')}
+                                                                        </th>
+                                                                    ))}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {tableData.rows.slice(0, 5).map((row, i) => (
+                                                                    <tr key={i} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                                                                        {tableData.columns.slice(0, 5).map(col => (
+                                                                            <td key={col} style={{ padding: '8px' }}>{formatNumber(row[col])}</td>
+                                                                        ))}
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    {tableData.rows.length > 5 && (
+                                                        <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '5px' }}>
+                                                            Showing 5 of {tableData.rows.length} rows.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Insights (Summary - Bottom) */}
+                                            <div className="fh-ai-insights-rendered">
                                                 {/* Text content from parsed summary */}
                                                 {(parsedSummary && (parsedSummary.other.length > 0 || parsedSummary.keyStats.length > 0)) ? (
                                                     <div style={{ marginBottom: '15px' }}>
@@ -1051,13 +1085,12 @@ const FinancialHealth = () => {
                                                     </div>
                                                 )}
 
-                                                {/* Key Stats for last turn */}
-                                                {isLast && parsedSummary && parsedSummary.keyStats.length > 0 && (
+                                                {/* Key Stats */}
+                                                {parsedSummary && parsedSummary.keyStats.length > 0 && (
                                                     <div style={{
                                                         display: 'grid',
                                                         gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                                                        gap: '10px',
-                                                        marginBottom: '15px'
+                                                        gap: '10px'
                                                     }}>
                                                         {parsedSummary.keyStats.map((stat, i) => {
                                                             const [label, ...valParts] = stat.split(':');
@@ -1076,74 +1109,9 @@ const FinancialHealth = () => {
                                                         })}
                                                     </div>
                                                 )}
-
-                                                {/* Table for last turn */}
-                                                {isLast && tableData && (
-                                                    <div style={{ marginBottom: '15px' }}>
-                                                        <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
-                                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                                                <thead style={{ background: '#F9FAFB' }}>
-                                                                    <tr>
-                                                                        {tableData.columns.slice(0, 5).map(col => (
-                                                                            <th key={col} style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #E5E7EB', color: '#1B5B7E' }}>
-                                                                                {col.replace(/_/g, ' ')}
-                                                                            </th>
-                                                                        ))}
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {tableData.rows.slice(0, 5).map((row, i) => (
-                                                                        <tr key={i} style={{ borderBottom: '1px solid #F3F4F6' }}>
-                                                                            {tableData.columns.slice(0, 5).map(col => (
-                                                                                <td key={col} style={{ padding: '8px' }}>{formatNumber(row[col])}</td>
-                                                                            ))}
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                        {tableData.rows.length > 5 && (
-                                                            <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '5px' }}>
-                                                                Showing 5 of {tableData.rows.length} rows.
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* SQL Toggle for last turn */}
-                                                {isLast && turn.sql && (
-                                                    <details>
-                                                        <summary style={{ fontSize: '12px', cursor: 'pointer', color: '#689EC2', fontWeight: 600 }}>View Query Details</summary>
-                                                        <pre style={{
-                                                            fontSize: '11px',
-                                                            background: '#1F2937',
-                                                            color: '#F9FAFB',
-                                                            padding: '12px',
-                                                            borderRadius: '8px',
-                                                            overflow: 'auto',
-                                                            marginTop: '10px'
-                                                        }}>
-                                                            {turn.sql}
-                                                        </pre>
-                                                    </details>
-                                                )}
                                             </div>
-                                        )}
+                                        </div>
 
-                                        {/* History turn Structured Data (minimized) */}
-                                        {!isLast && hasStructuredData && (
-                                            <div style={{
-                                                marginTop: '8px',
-                                                fontSize: '11px',
-                                                color: '#689EC2',
-                                                padding: '4px 8px',
-                                                background: '#F9FAFB',
-                                                borderRadius: '4px',
-                                                display: 'inline-block'
-                                            }}>
-                                                Contains data table & SQL query
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </div>
