@@ -163,7 +163,9 @@
 }
 
 .bi-title-icon {
-    font-size: 25px;
+    display: flex;
+    align-items: center;
+    color: #1B5B7E;
 }
 
 /* KPI Row */

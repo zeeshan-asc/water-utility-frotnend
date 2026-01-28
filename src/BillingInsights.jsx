@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Flag, FileText, DollarSign, Target } from 'lucide-react';
+import { Search, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Flag, FileText, DollarSign, Target, BarChart3, Bot } from 'lucide-react';
 import PageNavigation from './PageNavigation';
 import './BillingInsights.css';
 
@@ -95,7 +95,7 @@ const BillingInsights = () => {
 
             {/* Collections & Delinquency Analysis */}
             <h2 className="bi-section-title">
-                <span className="bi-title-icon">📊</span>
+                <span className="bi-title-icon"><BarChart3 size={20} /></span>
                 Collections & Delinquency Analysis
             </h2>
 
@@ -289,7 +289,7 @@ const BillingInsights = () => {
 
             {/* AI-Powered Billing & Work Order Reconciliation Engine */}
             <h2 className="bi-section-title">
-                <span className="bi-title-icon">🤖</span>
+                <span className="bi-title-icon"><Bot size={20} /></span>
                 AI-Powered Billing & Work Order Reconciliation Engine
             </h2>
 
