@@ -2,7 +2,10 @@
 
 .billing-insights-container {
     position: relative;
+    max-width: 1440px;
+    width: 100%;
     width: 90%;
+
     min-height: 2375px;
     background: linear-gradient(180deg, #F4F8FE 0%, #FFFFFF 100%);
     padding: 29px 50px;
@@ -91,6 +94,7 @@
 /* Executive Summary Section */
 .bi-executive-summary {
     width: 100%;
+    max-width: 100%;
     min-height: 220px;
     background: linear-gradient(105.72deg, rgba(155, 192, 218, 0.28) 7.94%, rgba(199, 232, 255, 0.28) 86.59%);
     border: 1px solid #689EC2;
@@ -112,6 +116,8 @@
     align-items: center;
     padding: 0 20px;
     gap: 15px;
+    margin: 0 auto 24px auto;
+    flex-wrap: wrap;
     margin: 0 auto 24px auto;
 }
 
@@ -137,6 +143,8 @@
     line-height: 34px;
     color: #1B5B7E;
     padding: 0 10px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .bi-summary-content strong {
@@ -1001,6 +1009,27 @@
         padding: 20px;
     }
     
+    .bi-executive-summary {
+        padding: 12px 12px 20px;
+        min-height: auto;
+    }
+    
+    .bi-search-bar {
+        padding: 0 15px;
+        gap: 12px;
+    }
+    
+    .bi-search-text {
+        font-size: 14px;
+        line-height: 28px;
+    }
+    
+    .bi-summary-content {
+        font-size: 16px;
+        line-height: 30px;
+        padding: 0 8px;
+    }
+    
     .bi-kpi-row {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1056,16 +1085,36 @@
         width: 100%;
     }
     
+    .bi-executive-summary {
+        padding: 12px 10px 18px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+    }
+    
     .bi-search-bar {
-        flex-direction: column;
+        flex-direction: row;
         height: auto;
-        padding: 15px;
-        align-items: flex-start;
+        padding: 12px 15px;
+        align-items: center;
+        border-radius: 30px;
+        min-height: auto;
+    }
+    
+    .bi-search-icon {
+        flex-shrink: 0;
+    }
+    
+    .bi-search-text {
+        font-size: 13px;
+        line-height: 22px;
+        flex: 1;
+        min-width: 0;
     }
     
     .bi-summary-content {
         font-size: 15px;
         line-height: 24px;
+        padding: 0 5px;
     }
     
     .bi-table-card {
@@ -1119,6 +1168,35 @@
         padding: 10px;
     }
     
+    .bi-executive-summary {
+        padding: 10px 8px 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        min-height: auto;
+    }
+    
+    .bi-search-bar {
+        padding: 10px 12px;
+        border-radius: 25px;
+        gap: 10px;
+    }
+    
+    .bi-search-icon {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .bi-search-text {
+        font-size: 12px;
+        line-height: 20px;
+    }
+    
+    .bi-summary-content {
+        font-size: 14px;
+        line-height: 22px;
+        padding: 0;
+    }
+    
     .bi-brand-title {
         font-size: 24px;
     }
@@ -1151,6 +1229,44 @@
     
     .bi-ai-summary-box {
         width: 100%;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+    .billing-insights-container {
+        width: 100%;
+        padding: 8px;
+    }
+    
+    .bi-executive-summary {
+        padding: 8px 6px 12px;
+        border-radius: 6px;
+    }
+    
+    .bi-search-bar {
+        padding: 8px 10px;
+        border-radius: 20px;
+        gap: 8px;
+    }
+    
+    .bi-search-icon {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .bi-search-text {
+        font-size: 11px;
+        line-height: 18px;
+    }
+    
+    .bi-summary-content {
+        font-size: 13px;
+        line-height: 20px;
+    }
+    
+    .bi-summary-content strong {
+        font-weight: 600;
     }
 }
 

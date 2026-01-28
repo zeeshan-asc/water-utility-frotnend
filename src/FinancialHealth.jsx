@@ -41,10 +41,154 @@ const formatCurrency = (value) => {
     return `$${value.toFixed(2)}`;
 };
 
+// Helper function to format number with commas
+const formatNumber = (value) => {
+    if (typeof value === 'number') {
+        return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    }
+    return value;
+};
+
+// Helper function to format table data
+const formatTableData = (data) => {
+    if (!data || !Array.isArray(data) || data.length === 0) return null;
+    
+    const columns = Object.keys(data[0]);
+    return { columns, rows: data };
+};
+
+// Helper function to parse summary into sections
+const parseSummary = (summary) => {
+    if (!summary) return { question: '', keyStats: [], data: [], other: [] };
+    
+    const lines = summary.split('\n').filter(line => line.trim());
+    const result = {
+        question: '',
+        keyStats: [],
+        data: [],
+        other: []
+    };
+    
+    let currentSection = 'other';
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Detect "Based on the question" section
+        if (line.toLowerCase().includes('based on the question') || 
+            line.toLowerCase().includes('question:')) {
+            currentSection = 'question';
+            // Extract the question part
+            const questionMatch = line.match(/['"](.*?)['"]/);
+            if (questionMatch) {
+                result.question = questionMatch[1];
+            } else {
+                result.question = line.replace(/based on the question:?/i, '').trim();
+            }
+            continue;
+        }
+        
+        // Detect "Key statistics" section
+        if (line.toLowerCase().includes('key statistics') || 
+            line.toLowerCase().includes('key stats')) {
+            currentSection = 'keyStats';
+            continue;
+        }
+        
+        // Detect "Data:" section
+        if (line.toLowerCase() === 'data:' || 
+            line.toLowerCase().startsWith('data:')) {
+            currentSection = 'data';
+            continue;
+        }
+        
+        // Process content based on current section
+        if (currentSection === 'keyStats') {
+            if (line.startsWith('-') || line.startsWith('•')) {
+                result.keyStats.push(line.replace(/^[-•]\s*/, '').trim());
+            } else if (line.includes(':')) {
+                result.keyStats.push(line);
+            }
+        } else if (currentSection === 'data') {
+            if (line && !line.toLowerCase().includes('data')) {
+                result.data.push(line);
+            }
+        } else if (currentSection === 'question') {
+            // Continue collecting question text
+            if (line && !line.toLowerCase().includes('query returned')) {
+                const questionMatch = line.match(/['"](.*?)['"]/);
+                if (questionMatch && !result.question) {
+                    result.question = questionMatch[1];
+                }
+            }
+        } else {
+            // Other content
+            if (line && !line.toLowerCase().includes('query returned')) {
+                result.other.push(line);
+            }
+        }
+    }
+    
+    return result;
+};
+
 const FinancialHealth = () => {
     const [rateIncrease, setRateIncrease] = useState(63);
     const [waterLoss, setWaterLoss] = useState(1);
     const [expenseGrowth, setExpenseGrowth] = useState(5);
+    const [scenarioName, setScenarioName] = useState('');
+
+    // Calculate dynamic impacts based on current data
+    const calculateRateIncreaseImpact = () => {
+        const currentRevenue = (revenueSummary?.total_revenue || kpis?.total_revenue || 26.5) * 10; // Convert to millions
+        const impact = (currentRevenue * rateIncrease) / 100;
+        return impact;
+    };
+
+    const calculateWaterLossImpact = () => {
+        const currentRevenue = (revenueSummary?.total_revenue || kpis?.total_revenue || 26.5) * 10;
+        const currentWaterLoss = (kpis?.non_revenue_water_pct || 0.231) * 100; // Convert to percentage
+        // Water loss reduction impact: if we reduce water loss, we recover that percentage of revenue
+        const impact = (currentRevenue * (waterLoss / 100) * (currentWaterLoss / 100));
+        return impact;
+    };
+
+    const calculateExpenseImpact = () => {
+        const currentRevenue = (revenueSummary?.total_revenue || kpis?.total_revenue || 26.5) * 10;
+        const operatingMargin = kpis?.operating_margin || 0.184;
+        const currentExpenses = currentRevenue * (1 - operatingMargin);
+        const impact = (currentExpenses * expenseGrowth) / 100;
+        return impact;
+    };
+
+    // Calculate total scenario impact
+    const calculateScenarioImpact = () => {
+        const revenueImpact = calculateRateIncreaseImpact() + calculateWaterLossImpact();
+        const expenseImpact = calculateExpenseImpact();
+        const currentRevenue = (revenueSummary?.total_revenue || kpis?.total_revenue || 26.5) * 10;
+        const operatingMargin = kpis?.operating_margin || 0.184;
+        const currentExpenses = currentRevenue * (1 - operatingMargin);
+        const currentNetIncome = currentRevenue * operatingMargin;
+        
+        const projectedRevenue = currentRevenue + revenueImpact;
+        const projectedExpenses = currentExpenses + expenseImpact;
+        const projectedNetIncome = projectedRevenue - projectedExpenses;
+        
+        // Calculate debt service coverage (simplified - would need actual debt service payment)
+        const debtService = (kpis?.outstanding_debt || 8.1) * 10 * 0.05; // Assume 5% annual debt service
+        const debtServiceCoverage = debtService > 0 ? projectedNetIncome / debtService : 0;
+        
+        // Determine financial viability
+        const financialViability = projectedNetIncome > 0 && debtServiceCoverage > 1.25 ? 'Healthy' : 'At Risk';
+        
+        return {
+            projectedRevenue,
+            projectedExpenses,
+            projectedNetIncome,
+            debtServiceCoverage,
+            financialViability
+        };
+    };
     
     // Data states
     const [loading, setLoading] = useState(true);
@@ -133,7 +277,8 @@ const FinancialHealth = () => {
                     sql: null,
                     data: null,
                     summary: sql,
-                    isConversational: true
+                    isConversational: true,
+                    type: responseType || 'text'
                 });
                 console.log('AI response set successfully (text response)');
                 return;
@@ -202,31 +347,36 @@ const FinancialHealth = () => {
                         success: true,
                         sql: sql || null,
                         data: sqlResults,
-                        summary: summary || 'Summary generated successfully.'
+                        summary: summary || 'Summary generated successfully.',
+                        type: responseType || (sql ? 'sql' : 'text')
                     });
                 } else {
                     // Summary generation failed, but we can still show SQL/results
                     const errorText = await summaryResponse.text();
                     console.warn('Summary generation failed:', errorText);
+                    const isSqlType = responseType === 'sql' || (responseType !== 'text' && sql);
                     setAiResponse({
                         success: true,
                         sql: sql || null,
                         data: sqlResults,
                         summary: sqlResults 
                             ? `Query executed successfully. ${Array.isArray(sqlResults) ? sqlResults.length : Object.keys(sqlResults || {}).length} rows returned.`
-                            : (sql ? `SQL generated: ${sql}` : 'Question processed successfully.')
+                            : (isSqlType && sql ? `SQL generated: ${sql}` : 'Question processed successfully.'),
+                        type: responseType || (sql ? 'sql' : 'text')
                     });
                 }
             } catch (summaryErr) {
                 console.warn('Summary generation error:', summaryErr);
                 // Fallback: show SQL/results even if summary fails
+                const isSqlType = responseType === 'sql' || (responseType !== 'text' && sql);
                 setAiResponse({
                     success: true,
                     sql: sql || null,
                     data: sqlResults,
                     summary: sqlResults 
                         ? `Query executed successfully. ${Array.isArray(sqlResults) ? sqlResults.length : Object.keys(sqlResults || {}).length} rows returned.`
-                        : (sql ? `SQL generated: ${sql}` : 'Question processed successfully.')
+                        : (isSqlType && sql ? `SQL generated: ${sql}` : 'Question processed successfully.'),
+                    type: responseType || (sql ? 'sql' : 'text')
                 });
             }
             
@@ -522,6 +672,7 @@ const FinancialHealth = () => {
                         <h1 className="fh-brand-title">AquaSentinel™</h1>
                         <p className="fh-brand-subtitle">CFO Command Intelligence for Financial, Operational, Billing & Compliance Oversight</p>
                     </div>
+<<<<<<< Updated upstream
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         {backendHealth && (
                             <div style={{ 
@@ -554,6 +705,8 @@ const FinancialHealth = () => {
                             </div>
                         )}
                     </div>
+=======
+>>>>>>> Stashed changes
                 </div>
             </div>
 
@@ -684,21 +837,43 @@ const FinancialHealth = () => {
                             {/* Conversational response (not SQL) */}
                             {aiResponse.isConversational && (
                                 <div>
-                                    <h3>AI Response:</h3>
+                                    <h3 style={{ 
+                                        fontSize: '16px', 
+                                        fontWeight: '700', 
+                                        color: '#1B5B7E', 
+                                        marginBottom: '15px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}>
+                                        <Lightbulb size={18} color="#1B5B7E" />
+                                        AI Response
+                                    </h3>
                                     <div style={{ 
                                         whiteSpace: 'pre-wrap', 
                                         lineHeight: '1.6',
                                         marginBottom: '15px',
-                                        padding: '15px',
+                                        padding: '18px',
                                         background: '#F0F9FF',
-                                        borderRadius: '5px',
-                                        border: '1px solid #BAE6FD'
+                                        borderRadius: '8px',
+                                        border: '1px solid #BAE6FD',
+                                        color: '#374151',
+                                        fontSize: '14px',
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
                                     }}>
                                         {aiResponse.sql || aiResponse.summary || aiResponse.error}
                                     </div>
-                                    <p style={{ fontSize: '12px', color: '#6B7280', fontStyle: 'italic' }}>
-                                        💡 Try asking a specific question about your data, like "What was the total revenue in 2024?" or "Show me budget variance by department"
-                                    </p>
+                                    <div style={{ 
+                                        fontSize: '12px', 
+                                        color: '#6B7280', 
+                                        padding: '12px',
+                                        background: '#F9FAFB',
+                                        borderRadius: '6px',
+                                        border: '1px solid #E5E7EB',
+                                        marginTop: '15px'
+                                    }}>
+                                        <strong style={{ color: '#1B5B7E' }}>💡 Tip:</strong> Try asking a specific question about your data, like "What was the total revenue in 2024?" or "Show me budget variance by department"
+                                    </div>
                                 </div>
                             )}
                             
@@ -736,31 +911,58 @@ const FinancialHealth = () => {
                             )}
                             
                             {/* Successful SQL response with summary */}
-                            {aiResponse.summary && !aiResponse.isConversational && !aiResponse.hasError && (
-                                <div>
-                                    <h3>AI Analysis:</h3>
-                                    <div style={{ 
-                                        whiteSpace: 'pre-wrap', 
-                                        lineHeight: '1.6',
-                                        marginBottom: '15px'
-                                    }}>
-                                        {aiResponse.summary}
-                                    </div>
-                                    {aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 && (
-                                        <div style={{ marginTop: '15px' }}>
-                                            <h4>Query Results ({aiResponse.row_count || aiResponse.data.length} row{aiResponse.data.length !== 1 ? 's' : ''}):</h4>
-                                            <div style={{ 
-                                                background: '#f5f5f5', 
-                                                padding: '10px', 
-                                                borderRadius: '5px',
-                                                fontSize: '12px',
-                                                overflow: 'auto',
-                                                maxHeight: '300px'
-                                            }}>
-                                                <pre style={{ margin: 0 }}>
-                                                    {JSON.stringify(aiResponse.data, null, 2)}
+                            {aiResponse.summary && !aiResponse.isConversational && !aiResponse.hasError && (() => {
+                                const parsedSummary = parseSummary(aiResponse.summary);
+                                const tableData = aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 
+                                    ? formatTableData(aiResponse.data) 
+                                    : null;
+                                
+                                return (
+                                    <div>
+                                        <h3 style={{ 
+                                            fontSize: '16px', 
+                                            fontWeight: '700', 
+                                            color: '#1B5B7E', 
+                                            marginBottom: '20px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}>
+                                            <Lightbulb size={18} color="#1B5B7E" />
+                                            AI Analysis
+                                        </h3>
+                                        
+                                        {/* 1. SQL Query - Show First */}
+                                        {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
+                                            <div style={{ marginBottom: '25px' }}>
+                                                <h4 style={{ 
+                                                    fontSize: '14px', 
+                                                    fontWeight: '600', 
+                                                    color: '#1B5B7E',
+                                                    marginBottom: '10px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}>
+                                                    <Search size={16} color="#689EC2" />
+                                                    Generated SQL Query
+                                                </h4>
+                                                <pre style={{ 
+                                                    background: '#1F2937', 
+                                                    color: '#F9FAFB',
+                                                    padding: '15px', 
+                                                    borderRadius: '8px',
+                                                    fontSize: '13px',
+                                                    overflow: 'auto',
+                                                    fontFamily: 'Monaco, "Courier New", monospace',
+                                                    lineHeight: '1.6',
+                                                    border: '1px solid #374151',
+                                                    margin: 0
+                                                }}>
+                                                    {aiResponse.sql}
                                                 </pre>
                                             </div>
+<<<<<<< Updated upstream
                                         </div>
                                     )}
                                     {aiResponse.sql && aiResponse.type === 'sql' && (
@@ -775,15 +977,293 @@ const FinancialHealth = () => {
                                                 fontSize: '11px',
                                                 marginTop: '5px',
                                                 overflow: 'auto'
+=======
+                                        )}
+                                        
+                                        {/* 2. Based on the Question */}
+                                        {parsedSummary.question && (
+                                            <div style={{ 
+                                                background: '#F0F9FF',
+                                                border: '1px solid #BAE6FD',
+                                                borderRadius: '8px',
+                                                padding: '15px',
+                                                marginBottom: '20px'
+>>>>>>> Stashed changes
                                             }}>
-                                                {aiResponse.sql}
-                                            </pre>
-                                        </details>
-                                    )}
-                                </div>
-                            )}
+                                                <h4 style={{ 
+                                                    fontSize: '14px', 
+                                                    fontWeight: '600', 
+                                                    color: '#1B5B7E',
+                                                    marginBottom: '10px'
+                                                }}>
+                                                    Based on the Question
+                                                </h4>
+                                                <p style={{ 
+                                                    color: '#374151',
+                                                    fontSize: '14px',
+                                                    margin: 0,
+                                                    fontStyle: 'italic'
+                                                }}>
+                                                    "{parsedSummary.question}"
+                                                </p>
+                                            </div>
+                                        )}
+                                        
+                                        {/* 3. Query Results Table */}
+                                        {tableData && (
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <h4 style={{ 
+                                                    fontSize: '14px', 
+                                                    fontWeight: '600', 
+                                                    color: '#1B5B7E',
+                                                    marginBottom: '12px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}>
+                                                    <Target size={16} color="#1B5B7E" />
+                                                    Query Results ({aiResponse.row_count || aiResponse.data.length} row{aiResponse.data.length !== 1 ? 's' : ''})
+                                                </h4>
+                                                <div style={{ 
+                                                    overflowX: 'auto',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #E5E7EB',
+                                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                                                }}>
+                                                    <table style={{ 
+                                                        width: '100%',
+                                                        borderCollapse: 'collapse',
+                                                        background: '#FFFFFF',
+                                                        fontSize: '13px'
+                                                    }}>
+                                                        <thead>
+                                                            <tr style={{ 
+                                                                background: '#F9FAFB',
+                                                                borderBottom: '2px solid #E5E7EB'
+                                                            }}>
+                                                                {tableData.columns.map((col, colIdx) => (
+                                                                    <th key={colIdx} style={{ 
+                                                                        padding: '12px 15px',
+                                                                        textAlign: 'left',
+                                                                        fontWeight: '600',
+                                                                        color: '#1B5B7E',
+                                                                        fontSize: '12px',
+                                                                        textTransform: 'uppercase',
+                                                                        letterSpacing: '0.5px'
+                                                                    }}>
+                                                                        {col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                                    </th>
+                                                                ))}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {tableData.rows.map((row, rowIdx) => (
+                                                                <tr key={rowIdx} style={{ 
+                                                                    borderBottom: rowIdx < tableData.rows.length - 1 ? '1px solid #F3F4F6' : 'none',
+                                                                    transition: 'background-color 0.2s'
+                                                                }}
+                                                                onMouseEnter={(e) => e.currentTarget.style.background = '#F9FAFB'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}>
+                                                                    {tableData.columns.map((col, colIdx) => {
+                                                                        const value = row[col];
+                                                                        const isCurrency = col.toLowerCase().includes('revenue') || 
+                                                                                          col.toLowerCase().includes('amount') || 
+                                                                                          col.toLowerCase().includes('cost') ||
+                                                                                          col.toLowerCase().includes('expense') ||
+                                                                                          col.toLowerCase().includes('income') ||
+                                                                                          col.toLowerCase().includes('budget');
+                                                                        const formattedValue = isCurrency && typeof value === 'number' 
+                                                                            ? formatCurrency(value * 10) 
+                                                                            : formatNumber(value);
+                                                                        
+                                                                        return (
+                                                                            <td key={colIdx} style={{ 
+                                                                                padding: '12px 15px',
+                                                                                color: '#374151',
+                                                                                fontWeight: isCurrency ? '600' : '400'
+                                                                            }}>
+                                                                                {formattedValue}
+                                                                            </td>
+                                                                        );
+                                                                    })}
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* 4. Key Statistics */}
+                                        {parsedSummary.keyStats.length > 0 && (
+                                            <div style={{ 
+                                                background: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
+                                                border: '1px solid #7DD3FC',
+                                                borderRadius: '12px',
+                                                padding: '20px',
+                                                marginBottom: '20px',
+                                                boxShadow: '0 2px 8px rgba(27, 91, 126, 0.1)'
+                                            }}>
+                                                <h4 style={{ 
+                                                    fontSize: '15px', 
+                                                    fontWeight: '700', 
+                                                    color: '#1B5B7E',
+                                                    marginBottom: '16px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '10px',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px'
+                                                }}>
+                                                    <Target size={18} color="#1B5B7E" />
+                                                    Key Statistics
+                                                </h4>
+                                                <div style={{ 
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                                                    gap: '12px'
+                                                }}>
+                                                    {parsedSummary.keyStats.map((stat, idx) => {
+                                                        const [key, ...valueParts] = stat.split(':');
+                                                        const value = valueParts.join(':').trim();
+                                                        
+                                                        // Parse value to extract min, max, avg if present
+                                                        const minMatch = value.match(/min=([\d.]+)/);
+                                                        const maxMatch = value.match(/max=([\d.]+)/);
+                                                        const avgMatch = value.match(/avg=([\d.]+)/);
+                                                        
+                                                        const isNumericValue = /^[\d.]+$/.test(value.trim());
+                                                        const formattedValue = isNumericValue && parseFloat(value) 
+                                                            ? formatNumber(parseFloat(value))
+                                                            : value;
+                                                        
+                                                        return (
+                                                            <div key={idx} style={{ 
+                                                                background: '#FFFFFF',
+                                                                border: '1px solid #BAE6FD',
+                                                                borderRadius: '8px',
+                                                                padding: '14px',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                gap: '6px',
+                                                                transition: 'all 0.2s',
+                                                                boxShadow: '0 1px 3px rgba(27, 91, 126, 0.08)'
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(27, 91, 126, 0.15)';
+                                                                e.currentTarget.style.borderColor = '#7DD3FC';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                                e.currentTarget.style.boxShadow = '0 1px 3px rgba(27, 91, 126, 0.08)';
+                                                                e.currentTarget.style.borderColor = '#BAE6FD';
+                                                            }}>
+                                                                <div style={{ 
+                                                                    fontSize: '11px',
+                                                                    fontWeight: '600',
+                                                                    color: '#689EC2',
+                                                                    textTransform: 'uppercase',
+                                                                    letterSpacing: '0.5px',
+                                                                    marginBottom: '4px'
+                                                                }}>
+                                                                    {key.trim().replace(/_/g, ' ')}
+                                                                </div>
+                                                                {minMatch || maxMatch || avgMatch ? (
+                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                                        {minMatch && (
+                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                                                <span style={{ color: '#6B7280' }}>Min:</span>
+                                                                                <strong style={{ color: '#1B5B7E' }}>{formatNumber(parseFloat(minMatch[1]))}</strong>
+                                                                            </div>
+                                                                        )}
+                                                                        {maxMatch && (
+                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                                                <span style={{ color: '#6B7280' }}>Max:</span>
+                                                                                <strong style={{ color: '#1B5B7E' }}>{formatNumber(parseFloat(maxMatch[1]))}</strong>
+                                                                            </div>
+                                                                        )}
+                                                                        {avgMatch && (
+                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                                                <span style={{ color: '#6B7280' }}>Avg:</span>
+                                                                                <strong style={{ color: '#1B5B7E' }}>{formatNumber(parseFloat(avgMatch[1]))}</strong>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div style={{ 
+                                                                        fontSize: '16px',
+                                                                        fontWeight: '700',
+                                                                        color: '#1B5B7E',
+                                                                        marginTop: '4px'
+                                                                    }}>
+                                                                        {formattedValue}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* 5. Data Section */}
+                                        {parsedSummary.data.length > 0 && (
+                                            <div style={{ 
+                                                background: '#F9FAFB',
+                                                border: '1px solid #E5E7EB',
+                                                borderRadius: '8px',
+                                                padding: '15px',
+                                                marginBottom: '20px'
+                                            }}>
+                                                <h4 style={{ 
+                                                    fontSize: '14px', 
+                                                    fontWeight: '600', 
+                                                    color: '#1B5B7E',
+                                                    marginBottom: '12px'
+                                                }}>
+                                                    Data
+                                                </h4>
+                                                <div style={{ 
+                                                    fontFamily: 'Monaco, "Courier New", monospace',
+                                                    fontSize: '12px',
+                                                    color: '#374151',
+                                                    lineHeight: '1.8'
+                                                }}>
+                                                    {parsedSummary.data.map((line, idx) => (
+                                                        <div key={idx}>{line}</div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Other content if any */}
+                                        {parsedSummary.other.length > 0 && (
+                                            <div style={{ 
+                                                background: '#F0F9FF',
+                                                border: '1px solid #BAE6FD',
+                                                borderRadius: '8px',
+                                                padding: '15px',
+                                                marginTop: '20px',
+                                                lineHeight: '1.6'
+                                            }}>
+                                                {parsedSummary.other.map((line, idx) => (
+                                                    <div key={idx} style={{ 
+                                                        marginBottom: '8px',
+                                                        color: '#374151',
+                                                        fontSize: '13px'
+                                                    }}>
+                                                        {line}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
                             
                             {/* Response with data but no summary */}
+<<<<<<< Updated upstream
                             {!aiResponse.summary && !aiResponse.isConversational && aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 && (
                                 <div>
                                     <h3>Query Results:</h3>
@@ -812,20 +1292,152 @@ const FinancialHealth = () => {
                                                 borderRadius: '5px',
                                                 fontSize: '11px',
                                                 marginTop: '5px'
+=======
+                            {!aiResponse.summary && !aiResponse.isConversational && aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 && (() => {
+                                const tableData = formatTableData(aiResponse.data);
+                                if (!tableData) return null;
+                                
+                                return (
+                                    <div>
+                                        <h3 style={{ 
+                                            fontSize: '16px', 
+                                            fontWeight: '700', 
+                                            color: '#1B5B7E', 
+                                            marginBottom: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}>
+                                            <Target size={18} color="#1B5B7E" />
+                                            Query Results
+                                        </h3>
+                                        <p style={{ 
+                                            color: '#6B7280', 
+                                            fontSize: '13px',
+                                            marginBottom: '15px'
+                                        }}>
+                                            Found {aiResponse.row_count || aiResponse.data.length} result{aiResponse.data.length !== 1 ? 's' : ''}
+                                        </p>
+                                        <div style={{ 
+                                            overflowX: 'auto',
+                                            borderRadius: '8px',
+                                            border: '1px solid #E5E7EB',
+                                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                            marginBottom: '15px'
+                                        }}>
+                                            <table style={{ 
+                                                width: '100%',
+                                                borderCollapse: 'collapse',
+                                                background: '#FFFFFF',
+                                                fontSize: '13px'
+>>>>>>> Stashed changes
                                             }}>
-                                                {aiResponse.sql}
-                                            </pre>
-                                        </details>
-                                    )}
-                                </div>
-                            )}
+                                                <thead>
+                                                    <tr style={{ 
+                                                        background: '#F9FAFB',
+                                                        borderBottom: '2px solid #E5E7EB'
+                                                    }}>
+                                                        {tableData.columns.map((col, colIdx) => (
+                                                            <th key={colIdx} style={{ 
+                                                                padding: '12px 15px',
+                                                                textAlign: 'left',
+                                                                fontWeight: '600',
+                                                                color: '#1B5B7E',
+                                                                fontSize: '12px',
+                                                                textTransform: 'uppercase',
+                                                                letterSpacing: '0.5px'
+                                                            }}>
+                                                                {col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {tableData.rows.map((row, rowIdx) => (
+                                                        <tr key={rowIdx} style={{ 
+                                                            borderBottom: rowIdx < tableData.rows.length - 1 ? '1px solid #F3F4F6' : 'none'
+                                                        }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.background = '#F9FAFB'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}>
+                                                            {tableData.columns.map((col, colIdx) => {
+                                                                const value = row[col];
+                                                                const isCurrency = col.toLowerCase().includes('revenue') || 
+                                                                                  col.toLowerCase().includes('amount') || 
+                                                                                  col.toLowerCase().includes('cost') ||
+                                                                                  col.toLowerCase().includes('expense') ||
+                                                                                  col.toLowerCase().includes('income') ||
+                                                                                  col.toLowerCase().includes('budget');
+                                                                const formattedValue = isCurrency && typeof value === 'number' 
+                                                                    ? formatCurrency(value * 10) 
+                                                                    : formatNumber(value);
+                                                                
+                                                                return (
+                                                                    <td key={colIdx} style={{ 
+                                                                        padding: '12px 15px',
+                                                                        color: '#374151',
+                                                                        fontWeight: isCurrency ? '600' : '400'
+                                                                    }}>
+                                                                        {formattedValue}
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
+                                            <details style={{ marginTop: '10px' }}>
+                                                <summary style={{ 
+                                                    cursor: 'pointer', 
+                                                    color: '#689EC2', 
+                                                    fontWeight: '600',
+                                                    fontSize: '13px',
+                                                    padding: '8px 12px',
+                                                    background: '#F9FAFB',
+                                                    borderRadius: '6px',
+                                                    border: '1px solid #E5E7EB',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = '#F3F4F6';
+                                                    e.currentTarget.style.borderColor = '#689EC2';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = '#F9FAFB';
+                                                    e.currentTarget.style.borderColor = '#E5E7EB';
+                                                }}>
+                                                    <Search size={14} />
+                                                    View SQL Query
+                                                </summary>
+                                                <pre style={{ 
+                                                    background: '#1F2937', 
+                                                    color: '#F9FAFB',
+                                                    padding: '15px', 
+                                                    borderRadius: '6px',
+                                                    fontSize: '12px',
+                                                    marginTop: '8px',
+                                                    overflow: 'auto',
+                                                    fontFamily: 'Monaco, "Courier New", monospace',
+                                                    lineHeight: '1.5',
+                                                    border: '1px solid #374151'
+                                                }}>
+                                                    {aiResponse.sql}
+                                                </pre>
+                                            </details>
+                                        )}
+                                    </div>
+                                );
+                            })()}
                             
                             {/* No data found */}
                             {!aiResponse.summary && !aiResponse.isConversational && !aiResponse.hasError && (!aiResponse.data || (Array.isArray(aiResponse.data) && aiResponse.data.length === 0)) && (
                                 <div>
                                     <h3>AI Response:</h3>
                                     <p>No data found for your query.</p>
-                                    {aiResponse.sql && (
+                                    {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
                                         <details style={{ marginTop: '10px' }}>
                                             <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
                                                 <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> View SQL Query
@@ -1027,10 +1639,12 @@ const FinancialHealth = () => {
                             min="0"
                             max="100"
                             value={rateIncrease}
-                            onChange={(e) => setRateIncrease(e.target.value)}
+                            onChange={(e) => setRateIncrease(parseFloat(e.target.value))}
                             className="fh-slider"
                         />
-                        <div className="fh-impact-text positive">Revenue impact: +$0.50M</div>
+                        <div className="fh-impact-text positive">
+                            Revenue impact: {calculateRateIncreaseImpact() >= 0 ? '+' : ''}{formatCurrency(calculateRateIncreaseImpact())}
+                        </div>
                     </div>
 
                     <div className="fh-scenario-input">
@@ -1043,15 +1657,17 @@ const FinancialHealth = () => {
                             min="0"
                             max="100"
                             value={waterLoss}
-                            onChange={(e) => setWaterLoss(e.target.value)}
+                            onChange={(e) => setWaterLoss(parseFloat(e.target.value))}
                             className="fh-slider"
                         />
-                        <div className="fh-impact-text positive">Revenue impact: +$0.01M</div>
+                        <div className="fh-impact-text positive">
+                            Revenue impact: {calculateWaterLossImpact() >= 0 ? '+' : ''}{formatCurrency(calculateWaterLossImpact())}
+                        </div>
                     </div>
 
                     <div className="fh-scenario-input">
                         <div className="fh-input-label-row">
-                            <span>Rate Increase</span>
+                            <span>Expense Growth</span>
                             <span className="fh-input-value">{expenseGrowth}.00%</span>
                         </div>
                         <input
@@ -1059,90 +1675,120 @@ const FinancialHealth = () => {
                             min="0"
                             max="100"
                             value={expenseGrowth}
-                            onChange={(e) => setExpenseGrowth(e.target.value)}
+                            onChange={(e) => setExpenseGrowth(parseFloat(e.target.value))}
                             className="fh-slider"
                         />
-                        <div className="fh-impact-text negative">Expense impact: +$0.08M</div>
+                        <div className="fh-impact-text negative">
+                            Expense impact: {calculateExpenseImpact() >= 0 ? '+' : ''}{formatCurrency(calculateExpenseImpact())}
+                        </div>
                     </div>
 
                     <div className="fh-scenario-input">
-                        <input type="text" className="fh-scenario-name-input" placeholder="Scenario Name" />
+                        <input 
+                            type="text" 
+                            className="fh-scenario-name-input" 
+                            placeholder="Scenario Name" 
+                            value={scenarioName}
+                            onChange={(e) => setScenarioName(e.target.value)}
+                        />
                         <button className="fh-save-btn">Save</button>
                     </div>
 
                     <div className="fh-scenario-impact-box">
                         <div className="fh-impact-header">SCENARIO IMPACT</div>
-                        {scenarios.length > 0 ? (
-                            // Use latest scenario data (most recent date)
-                            (() => {
-                                const latestScenario = scenarios.sort((a, b) => 
-                                    new Date(b.date) - new Date(a.date)
-                                )[0] || scenarios[0];
-                                return (
-                                    <>
-                                        <div className="fh-impact-row">
-                                            <span>Projected Revenue</span>
-                                            <span className={latestScenario.projected_revenue > 0 ? 'fh-impact-positive' : 'fh-impact-negative'}>
-                                                {formatCurrency((latestScenario.projected_revenue || 0) * 10)}
-                                            </span>
-                                        </div>
-                                        <div className="fh-impact-row">
-                                            <span>Net Income</span>
-                                            <span className={latestScenario.net_income > 0 ? 'fh-impact-positive' : 'fh-impact-negative'}>
-                                                {formatCurrency((latestScenario.net_income || 0) * 10)}
-                                            </span>
-                                        </div>
-                                        <div className="fh-impact-row">
-                                            <span>Debt Service Coverage</span>
-                                            <span className={latestScenario.debt_service_coverage > 1.25 ? 'fh-impact-positive' : 'fh-impact-negative'}>
-                                                {latestScenario.debt_service_coverage?.toFixed(2) || '0.00'}x
-                                            </span>
-                                        </div>
-                                        <div className="fh-impact-row">
-                                            <span>Financial Viability</span>
-                                            <span className={latestScenario.financial_viability?.toLowerCase().includes('healthy') ? 'fh-impact-positive' : 'fh-impact-negative'}>
-                                                {latestScenario.financial_viability || 'Unknown'}
-                                            </span>
-                                        </div>
-                                    </>
-                                );
-                            })()
-                        ) : (
-                            // Fallback to default values
-                            <>
-                                <div className="fh-impact-row">
-                                    <span>Operating Income</span>
-                                    <span className="fh-impact-negative">$7.70M</span>
-                                </div>
-                                <div className="fh-impact-row">
-                                    <span>Net Income</span>
-                                    <span className="fh-impact-positive">$4.50M</span>
-                                </div>
-                                <div className="fh-impact-row">
-                                    <span>Debt Service Coverage</span>
-                                    <span className="fh-impact-positive">11.88x</span>
-                                </div>
-                                <div className="fh-impact-row">
-                                    <span>Financial Viability</span>
-                                    <span className="fh-impact-positive">Healthy</span>
-                                </div>
-                            </>
-                        )}
+                        {(() => {
+                            const impact = calculateScenarioImpact();
+                            return (
+                                <>
+                                    <div className="fh-impact-row">
+                                        <span>Projected Revenue</span>
+                                        <span className={impact.projectedRevenue > 0 ? 'fh-impact-positive' : 'fh-impact-negative'}>
+                                            {formatCurrency(impact.projectedRevenue)}
+                                        </span>
+                                    </div>
+                                    <div className="fh-impact-row">
+                                        <span>Net Income</span>
+                                        <span className={impact.projectedNetIncome > 0 ? 'fh-impact-positive' : 'fh-impact-negative'}>
+                                            {formatCurrency(impact.projectedNetIncome)}
+                                        </span>
+                                    </div>
+                                    <div className="fh-impact-row">
+                                        <span>Debt Service Coverage</span>
+                                        <span className={impact.debtServiceCoverage > 1.25 ? 'fh-impact-positive' : 'fh-impact-negative'}>
+                                            {impact.debtServiceCoverage.toFixed(2)}x
+                                        </span>
+                                    </div>
+                                    <div className="fh-impact-row">
+                                        <span>Financial Viability</span>
+                                        <span className={impact.financialViability === 'Healthy' ? 'fh-impact-positive' : 'fh-impact-negative'}>
+                                            {impact.financialViability}
+                                        </span>
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
 
                     <div className="fh-key-insights-box">
                         <div className="fh-insights-header">KEY INSIGHTS</div>
-                        <div className="fh-insight-item">
-                            <CheckCircle size={7} color="#16A34A" strokeWidth={1} />
-                            <span>Scenario generates positive net income</span>
-                        </div>
-                        <div className="fh-insight-item">
-                            <CheckCircle size={7} color="#16A34A" strokeWidth={1} />
-                            <span>Debt service coverage is healthy</span>
-                        </div>
-                        <div className="fh-insight-item blue">
-                            <span>Rate increase exceeds break-even point</span>
-                        </div>
+                        {(() => {
+                            const impact = calculateScenarioImpact();
+                            const insights = [];
+                            
+                            if (impact.projectedNetIncome > 0) {
+                                insights.push(
+                                    <div key="net-income" className="fh-insight-item">
+                                        <CheckCircle size={7} color="#16A34A" strokeWidth={1} />
+                                        <span>Scenario generates positive net income</span>
+                                    </div>
+                                );
+                            } else {
+                                insights.push(
+                                    <div key="net-income-negative" className="fh-insight-item">
+                                        <XCircle size={7} color="#DC2626" strokeWidth={1} />
+                                        <span>Scenario results in negative net income</span>
+                                    </div>
+                                );
+                            }
+                            
+                            if (impact.debtServiceCoverage > 1.25) {
+                                insights.push(
+                                    <div key="debt-coverage" className="fh-insight-item">
+                                        <CheckCircle size={7} color="#16A34A" strokeWidth={1} />
+                                        <span>Debt service coverage is healthy ({impact.debtServiceCoverage.toFixed(2)}x)</span>
+                                    </div>
+                                );
+                            } else {
+                                insights.push(
+                                    <div key="debt-coverage-low" className="fh-insight-item">
+                                        <AlertTriangle size={7} color="#FD9C46" strokeWidth={1} />
+                                        <span>Debt service coverage below recommended threshold ({impact.debtServiceCoverage.toFixed(2)}x)</span>
+                                    </div>
+                                );
+                            }
+                            
+                            if (rateIncrease > 0 && calculateRateIncreaseImpact() > 0) {
+                                insights.push(
+                                    <div key="rate-increase" className="fh-insight-item blue">
+                                        <span>Rate increase generates {formatCurrency(calculateRateIncreaseImpact())} in additional revenue</span>
+                                    </div>
+                                );
+                            }
+                            
+                            if (waterLoss > 0 && calculateWaterLossImpact() > 0) {
+                                insights.push(
+                                    <div key="water-loss" className="fh-insight-item blue">
+                                        <span>Water loss reduction recovers {formatCurrency(calculateWaterLossImpact())} in revenue</span>
+                                    </div>
+                                );
+                            }
+                            
+                            return insights.length > 0 ? insights : [
+                                <div key="no-insights" className="fh-insight-item">
+                                    <span>Adjust scenario parameters to see insights</span>
+                                </div>
+                            ];
+                        })()}
                     </div>
                 </div>
                 {/* Main Grid - Row 2 Content continues here */}
