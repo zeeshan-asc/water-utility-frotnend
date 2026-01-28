@@ -10,7 +10,7 @@ import {
 import PageNavigation from './PageNavigation';
 import './FinancialHealth.css';
 
-const API_BASE_URL = 'http://localhost:8084';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Module-level cache to store financial health data (persists across remounts)
 let financialHealthDataCache = {
