@@ -1,13 +1,8 @@
 import React from 'react';
-<<<<<<< Updated upstream
-import { LineChart, Line, BarChart, Bar, AreaChart, Area, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
-import { AlertCircle, CheckCircle, Activity, Search, TrendingUp, Settings, Droplet } from 'lucide-react';
-=======
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
 import { AlertCircle, CheckCircle, Activity, Search, TrendingUp, TrendingDown, Settings, Droplet } from 'lucide-react';
 import PageNavigation from './PageNavigation';
->>>>>>> Stashed changes
 import './OperationsCompliance.css';
 
 // Data
@@ -70,11 +65,7 @@ const OperationsCompliance = () => {
             </div>
 
             {/* Tab Navigation */}
-            <div className="oc-tab-navigation">
-                <button className="oc-tab">Financial Health</button>
-                <button className="oc-tab oc-tab-active">Operations & Compliance</button>
-                <button className="oc-tab">Billing Insights</button>
-            </div>
+            <PageNavigation />
 
             {/* AI Query Section */}
             <div className="oc-ai-section">
@@ -364,8 +355,7 @@ const OperationsCompliance = () => {
                             <text x="67.665" y="70" textAnchor="middle" fontSize="15.0364" fontWeight="600" fill="#1B5B7E">87/100</text>
                             {/* Trend indicator with green text - positioned below 87/100 */}
                             <text x="67.665" y="85" textAnchor="middle" fontSize="9.02185" fill="#16A34A">
-                                <tspan>▲</tspan>
-                                <tspan dx="2">+1.5%</tspan>
+                                <tspan>+1.5%</tspan>
                                 <tspan dx="3">In Compliance</tspan>
                             </text>
                             {/* Compliance Score label at bottom */}

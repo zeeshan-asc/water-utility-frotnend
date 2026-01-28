@@ -5,8 +5,9 @@ import {
     Legend, ReferenceLine
 } from 'recharts';
 import {
-    Search, TrendingUp, AlertCircle, CheckCircle, Flag, Lightbulb
+    Search, TrendingUp, TrendingDown, AlertCircle, AlertTriangle, CheckCircle, XCircle, Flag, Lightbulb, Target
 } from 'lucide-react';
+import PageNavigation from './PageNavigation';
 import './FinancialHealth.css';
 
 const API_BASE_URL = 'http://localhost:8084';
@@ -679,9 +680,13 @@ const FinancialHealth = () => {
                                 padding: '4px 8px', 
                                 borderRadius: '12px',
                                 background: backendHealth === 'healthy' ? '#D1FAE5' : '#FEE2E2',
-                                color: backendHealth === 'healthy' ? '#065F46' : '#991B1B'
+                                color: backendHealth === 'healthy' ? '#065F46' : '#991B1B',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
                             }}>
-                                Backend: {backendHealth === 'healthy' ? '✓ Online' : backendHealth === 'unreachable' ? '✗ Offline' : '⚠ Unhealthy'}
+                                {backendHealth === 'healthy' ? <CheckCircle size={12} /> : backendHealth === 'unreachable' ? <XCircle size={12} /> : <AlertTriangle size={12} />}
+                                <span>Backend: {backendHealth === 'healthy' ? 'Online' : backendHealth === 'unreachable' ? 'Offline' : 'Unhealthy'}</span>
                             </div>
                         )}
                         {aiHealth && (
@@ -690,9 +695,13 @@ const FinancialHealth = () => {
                                 padding: '4px 8px', 
                                 borderRadius: '12px',
                                 background: aiHealth === 'healthy' ? '#D1FAE5' : '#FEE2E2',
-                                color: aiHealth === 'healthy' ? '#065F46' : '#991B1B'
+                                color: aiHealth === 'healthy' ? '#065F46' : '#991B1B',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
                             }}>
-                                AI: {aiHealth === 'healthy' ? '✓ Ready' : aiHealth === 'unreachable' ? '✗ Offline' : '⚠ Unhealthy'}
+                                {aiHealth === 'healthy' ? <CheckCircle size={12} /> : aiHealth === 'unreachable' ? <XCircle size={12} /> : <AlertTriangle size={12} />}
+                                <span>AI: {aiHealth === 'healthy' ? 'Ready' : aiHealth === 'unreachable' ? 'Offline' : 'Unhealthy'}</span>
                             </div>
                         )}
                     </div>
@@ -702,38 +711,34 @@ const FinancialHealth = () => {
             </div>
 
             {/* Tab Navigation */}
-            <div className="fh-tab-navigation">
-                <button className="fh-tab active">Financial Health</button>
-                <button className="fh-tab">Operations & Compliance</button>
-                <button className="fh-tab">Billing Insights</button>
-            </div>
+            <PageNavigation />
 
             {/* KPI Cards - Row 1 */}
             <div className="fh-kpi-grid-row1">
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Operating Margin</div>
                     <div className="fh-kpi-value">{((kpis?.operating_margin || 0.184) * 100).toFixed(1)}%</div>
-                    <div className="fh-kpi-change positive">▲ +2.3%</div>
+                    <div className="fh-kpi-change positive"><TrendingUp size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> +2.3%</div>
                 </div>
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Days Sales Outstanding</div>
                     <div className="fh-kpi-value">{kpis?.days_sales_outstanding || 38}</div>
-                    <div className="fh-kpi-change negative">▼ -3.2%</div>
+                    <div className="fh-kpi-change negative"><TrendingDown size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> -3.2%</div>
                 </div>
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Non Revenue Water %</div>
                     <div className="fh-kpi-value">{((kpis?.non_revenue_water_pct || 0.231) * 100).toFixed(1)}%</div>
-                    <div className="fh-kpi-change negative">▼ -1.8%</div>
+                    <div className="fh-kpi-change negative"><TrendingDown size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> -1.8%</div>
                 </div>
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Cost per Gallon</div>
                     <div className="fh-kpi-value">${kpis?.cost_per_gallon?.toFixed(2) || '4.27'}</div>
-                    <div className="fh-kpi-change positive">▲ +4.27%</div>
+                    <div className="fh-kpi-change positive"><TrendingUp size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> +4.27%</div>
                 </div>
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Collection Rate</div>
                     <div className="fh-kpi-value">{((kpis?.collection_rate || 0.942) * 100).toFixed(2)}%</div>
-                    <div className="fh-kpi-change positive">▲ +2.1%</div>
+                    <div className="fh-kpi-change positive"><TrendingUp size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> +2.1%</div>
                 </div>
             </div>
 
@@ -742,22 +747,22 @@ const FinancialHealth = () => {
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Annual Revenue</div>
                     <div className="fh-kpi-value">{formatCurrency((kpis?.total_revenue || 26.5) * 10)}</div>
-                    <div className="fh-kpi-change positive">▲ +3.2% vs last year</div>
+                    <div className="fh-kpi-change positive"><TrendingUp size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> +3.2% vs last year</div>
                 </div>
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Water Revenue</div>
                     <div className="fh-kpi-value">{formatCurrency((kpis?.water_revenue || 47.2) * 10)}</div>
-                    <div className="fh-kpi-change positive">▲ +2.1%</div>
+                    <div className="fh-kpi-change positive"><TrendingUp size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> +2.1%</div>
                 </div>
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Cash Reserve</div>
                     <div className="fh-kpi-value">{formatCurrency((kpis?.cash_reserve || 4.2) * 10)}</div>
-                    <div className="fh-kpi-change positive">▲ +12% from last quarter</div>
+                    <div className="fh-kpi-change positive"><TrendingUp size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> +12% from last quarter</div>
                 </div>
                 <div className="fh-kpi-card">
                     <div className="fh-kpi-label">Debt Service Coverage</div>
                     <div className="fh-kpi-value">{kpis?.debt_service_coverage?.toFixed(1) || '2.9'}x</div>
-                    <div className="fh-kpi-change positive">▲ +8.2%</div>
+                    <div className="fh-kpi-change positive"><TrendingUp size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> +8.2%</div>
                 </div>
             </div>
 
@@ -883,12 +888,12 @@ const FinancialHealth = () => {
                                         marginBottom: '15px',
                                         border: '1px solid #FCD34D'
                                     }}>
-                                        <strong>⚠️ Note:</strong> {aiResponse.summary || aiResponse.error}
+                                        <strong><AlertTriangle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Note:</strong> {aiResponse.summary || aiResponse.error}
                                     </div>
                                     {aiResponse.sql && (
                                         <details open style={{ marginTop: '10px' }}>
                                             <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                🔍 Generated SQL Query
+                                                <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Generated SQL Query
                                             </summary>
                                             <pre style={{ 
                                                 background: '#f5f5f5', 
@@ -963,7 +968,7 @@ const FinancialHealth = () => {
                                     {aiResponse.sql && aiResponse.type === 'sql' && (
                                         <details style={{ marginTop: '10px' }}>
                                             <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                🔍 View Generated SQL Query
+                                                <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> View Generated SQL Query
                                             </summary>
                                             <pre style={{ 
                                                 background: '#f5f5f5', 
@@ -1279,7 +1284,7 @@ const FinancialHealth = () => {
                                     {aiResponse.sql && (
                                         <details style={{ marginTop: '10px' }}>
                                             <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                🔍 View SQL Query
+                                                <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> View SQL Query
                                             </summary>
                                             <pre style={{ 
                                                 background: '#f5f5f5', 
@@ -1435,7 +1440,7 @@ const FinancialHealth = () => {
                                     {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
                                         <details style={{ marginTop: '10px' }}>
                                             <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                🔍 View SQL Query
+                                                <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> View SQL Query
                                             </summary>
                                             <pre style={{ 
                                                 background: '#f5f5f5', 
@@ -1995,7 +2000,7 @@ const FinancialHealth = () => {
             {/* Yield & Efficiency Alerts Section */}
             <div className="fh-section-header">
                 <h2 className="fh-section-title">
-                    <span className="fh-title-icon">🎯</span>
+                    <Target size={25} className="fh-title-icon" />
                     Yield & Efficiency Alerts
                 </h2>
             </div>
