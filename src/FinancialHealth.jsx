@@ -10,7 +10,7 @@ import {
 import PageNavigation from './PageNavigation';
 import './FinancialHealth.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8084';
+const API_BASE_URL = 'http://localhost:8084';
 
 // Module-level cache to store financial health data (persists across remounts)
 let financialHealthDataCache = {
@@ -225,6 +225,7 @@ const FinancialHealth = () => {
     const [aiLoading, setAiLoading] = useState(false);
     const [aiError, setAiError] = useState(null);
     const [aiChatHistory, setAiChatHistory] = useState([]);
+    const [aiStatusMessage, setAiStatusMessage] = useState('');
 
     // Health check states
     const [backendHealth, setBackendHealth] = useState(null);
@@ -294,11 +295,22 @@ const FinancialHealth = () => {
         try {
             setAiLoading(true);
             setAiError(null);
+            setAiStatusMessage('Analyzing your request...');
+
+            // Push the user's question and a placeholder for the assistant immediately
+            setAiChatHistory(prev => [...prev, {
+                question,
+                summary: '',
+                type: 'text',
+                sql: null,
+                data: null,
+                isStreaming: true
+            }]);
 
             console.log('Sending AI request:', question);
-            console.log('API URL:', `${API_BASE_URL}/api/v0/ai/generate-sql`);
 
-            // Step 1: Generate SQL from natural language
+            // Step 1: Generate SQL
+            setAiStatusMessage('Synthesizing optimized SQL query...');
             const generateResponse = await fetch(`${API_BASE_URL}/api/v0/ai/generate-sql`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -310,30 +322,26 @@ const FinancialHealth = () => {
             }
 
             const generateJson = await generateResponse.json();
-            console.log('Generate SQL response JSON:', generateJson);
-
-            // Handle response format: {"sql": "...", "success": true, "type": "sql"}
-            // SQL is at top level, not nested in data
             const sql = generateJson.sql || (generateJson.success && generateJson.data?.sql) || generateJson.query;
             const responseType = generateJson.type || generateJson.data?.type;
 
-            // If type is "text" or SQL contains an error message, treat as text response
-            const isTextResponse = responseType === 'text' ||
-                (sql && (sql.includes('not allowed') ||
-                    sql.includes('error') ||
-                    sql.includes('Error') ||
-                    sql.includes('LLM') && sql.includes('database')));
+            // Update turn with SQL as soon as we have it
+            updateLastTurn({
+                sql: sql || null,
+                type: responseType || (sql ? 'sql' : 'text')
+            });
 
-            // If it's a text response, just show the message and skip SQL execution
+            const isTextResponse = responseType === 'text' ||
+                (sql && (sql.includes('not allowed') || sql.includes('error') || sql.includes('LLM')));
+
             if (isTextResponse && sql) {
                 updateLastTurn({ summary: sql, isStreaming: false });
                 setAiLoading(false);
                 return;
             }
 
+            // Step 2: Run SQL
             let sqlResults = null;
-
-            // Step 2: If SQL exists and is valid, run it first
             if (sql && !isTextResponse) {
                 try {
                     setAiStatusMessage('Executing database query...');
@@ -354,21 +362,9 @@ const FinancialHealth = () => {
                 }
             }
 
-            // Step 3: Generate summary (works with or without SQL results)
+            // Step 3: Generate Summary
             try {
-                console.log('Generating summary...');
-                const summaryPayload = {
-                    question: question
-                };
-
-                // Include SQL and results if available
-                if (sql) {
-                    summaryPayload.sql = sql;
-                }
-                if (sqlResults) {
-                    summaryPayload.results = sqlResults;
-                }
-
+                setAiStatusMessage('Generating final insights...');
                 const summaryResponse = await fetch(`${API_BASE_URL}/api/v0/vanna/generate_summary`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -378,78 +374,16 @@ const FinancialHealth = () => {
                 if (summaryResponse.ok) {
                     const summaryJson = await summaryResponse.json();
                     const summary = summaryJson.summary || summaryJson.text || summaryJson.data?.summary || summaryJson.data;
-
-                    const responseObj = {
-                        success: true,
-                        sql: sql || null,
-                        data: sqlResults,
-                        summary: summary || 'Summary generated successfully.',
-                        type: responseType || (sql ? 'sql' : 'text')
-                    };
-                    setAiResponse(responseObj);
-                    setAiChatHistory(prev => [
-                        ...prev,
-                        {
-                            question,
-                            summary: responseObj.summary,
-                            type: responseObj.type,
-                            sql: responseObj.sql,
-                            data: responseObj.data
-                        }
-                    ]);
+                    updateLastTurn({ summary: summary || 'Analysis complete.' });
                 } else {
-                    // Summary generation failed, but we can still show SQL/results
-                    const errorText = await summaryResponse.text();
-                    console.warn('Summary generation failed:', errorText);
-                    const isSqlType = responseType === 'sql' || (responseType !== 'text' && sql);
-                    const responseObj = {
-                        success: true,
-                        sql: sql || null,
-                        data: sqlResults,
-                        summary: sqlResults
-                            ? `Query executed successfully. ${Array.isArray(sqlResults) ? sqlResults.length : Object.keys(sqlResults || {}).length} rows returned.`
-                            : (isSqlType && sql ? `SQL generated: ${sql}` : 'Question processed successfully.'),
-                        type: responseType || (sql ? 'sql' : 'text')
-                    };
-                    setAiResponse(responseObj);
-                    setAiChatHistory(prev => [
-                        ...prev,
-                        {
-                            question,
-                            summary: responseObj.summary,
-                            type: responseObj.type,
-                            sql: responseObj.sql,
-                            data: responseObj.data
-                        }
-                    ]);
+                    updateLastTurn({ summary: 'Query completed, but summary generation failed.' });
                 }
             } catch (summaryErr) {
-                console.warn('Summary generation error:', summaryErr);
-                // Fallback: show SQL/results even if summary fails
-                const isSqlType = responseType === 'sql' || (responseType !== 'text' && sql);
-                const responseObj = {
-                    success: true,
-                    sql: sql || null,
-                    data: sqlResults,
-                    summary: sqlResults
-                        ? `Query executed successfully. ${Array.isArray(sqlResults) ? sqlResults.length : Object.keys(sqlResults || {}).length} rows returned.`
-                        : (isSqlType && sql ? `SQL generated: ${sql}` : 'Question processed successfully.'),
-                    type: responseType || (sql ? 'sql' : 'text')
-                };
-                setAiResponse(responseObj);
-                setAiChatHistory(prev => [
-                    ...prev,
-                    {
-                        question,
-                        summary: responseObj.summary,
-                        type: responseObj.type,
-                        sql: responseObj.sql,
-                        data: responseObj.data
-                    }
-                ]);
+                console.warn('Summary error:', summaryErr);
+                updateLastTurn({ summary: 'Results fetched successfully.' });
             }
 
-            console.log('AI response set successfully');
+            updateLastTurn({ isStreaming: false });
         } catch (err) {
             console.error('AI Error:', err);
             setAiError(err.message);
@@ -1175,639 +1109,10 @@ const FinancialHealth = () => {
                                                         })}
                                                     </div>
                                                 )}
-
-                                                {/* Table for last turn */}
-                                                {isLast && tableData && (
-                                                    <div style={{ marginBottom: '15px' }}>
-                                                        <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
-                                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                                                <thead style={{ background: '#F9FAFB' }}>
-                                                                    <tr>
-                                                                        {tableData.columns.slice(0, 5).map(col => (
-                                                                            <th key={col} style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #E5E7EB', color: '#1B5B7E' }}>
-                                                                                {col.replace(/_/g, ' ')}
-                                                                            </th>
-                                                                        ))}
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {tableData.rows.slice(0, 5).map((row, i) => (
-                                                                        <tr key={i} style={{ borderBottom: '1px solid #F3F4F6' }}>
-                                                                            {tableData.columns.slice(0, 5).map(col => (
-                                                                                <td key={col} style={{ padding: '8px' }}>{formatNumber(row[col])}</td>
-                                                                            ))}
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                        {tableData.rows.length > 5 && (
-                                                            <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '5px' }}>
-                                                                Showing 5 of {tableData.rows.length} rows.
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* SQL Toggle for last turn */}
-                                                {isLast && turn.sql && (
-                                                    <details>
-                                                        <summary style={{ fontSize: '12px', cursor: 'pointer', color: '#689EC2', fontWeight: 600 }}>View Query Details</summary>
-                                                        <pre style={{
-                                                            fontSize: '11px',
-                                                            background: '#1F2937',
-                                                            color: '#F9FAFB',
-                                                            padding: '12px',
-                                                            borderRadius: '8px',
-                                                            overflow: 'auto',
-                                                            marginTop: '10px'
-                                                        }}>
-                                                            {turn.sql}
-                                                        </pre>
-                                                    </details>
-                                                )}
                                             </div>
-                                        )}
-
-                    {/* Detailed view for the latest response (tables, SQL, etc.) */}
-                    {aiResponse && !aiLoading && (
-                        <div>
-                            {/* Conversational response (not SQL).
-                                Once we have chat history, the plain text lives in the bubbles above
-                                so we only render this block when there is no history yet. */}
-                            {aiResponse.isConversational && aiChatHistory.length === 0 && (
-                                <div>
-                                    <h3 style={{
-                                        fontSize: '16px',
-                                        fontWeight: '700',
-                                        color: '#1B5B7E',
-                                        marginBottom: '15px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px'
-                                    }}>
-                                        <Lightbulb size={18} color="#1B5B7E" />
-                                        AI Response
-                                    </h3>
-                                    <div style={{
-                                        whiteSpace: 'pre-wrap',
-                                        lineHeight: '1.6',
-                                        marginBottom: '15px',
-                                        padding: '18px',
-                                        background: '#F0F9FF',
-                                        borderRadius: '8px',
-                                        border: '1px solid #BAE6FD',
-                                        color: '#374151',
-                                        fontSize: '14px',
-                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
-                                    }}>
-                                        {aiResponse.sql || aiResponse.summary || aiResponse.error}
-                                    </div>
-                                    <div style={{
-                                        fontSize: '12px',
-                                        color: '#6B7280',
-                                        padding: '12px',
-                                        background: '#F9FAFB',
-                                        borderRadius: '6px',
-                                        border: '1px solid #E5E7EB',
-                                        marginTop: '15px'
-                                    }}>
-                                        <strong style={{ color: '#1B5B7E' }}>💡 Tip:</strong> Try asking a specific question about your data, like "What was the total revenue in 2024?" or "Show me budget variance by department"
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Response with error but has SQL */}
-                            {aiResponse.hasError && !aiResponse.isConversational && (
-                                <div>
-                                    <h3>Query Generated:</h3>
-                                    <div style={{
-                                        padding: '10px',
-                                        background: '#FEF3C7',
-                                        borderRadius: '5px',
-                                        marginBottom: '15px',
-                                        border: '1px solid #FCD34D'
-                                    }}>
-                                        <strong><AlertTriangle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Note:</strong> {aiResponse.summary || aiResponse.error}
-                                    </div>
-                                    {aiResponse.sql && (
-                                        <details style={{ marginTop: '10px' }}>
-                                            <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Generated SQL Query
-                                            </summary>
-                                            <pre style={{
-                                                background: '#f5f5f5',
-                                                padding: '10px',
-                                                borderRadius: '5px',
-                                                fontSize: '11px',
-                                                marginTop: '5px',
-                                                overflow: 'auto'
-                                            }}>
-                                                {aiResponse.sql}
-                                            </pre>
-                                        </details>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Successful SQL response with summary */}
-                            {aiResponse.summary && !aiResponse.isConversational && !aiResponse.hasError && (() => {
-                                const parsedSummary = parseSummary(aiResponse.summary);
-                                const tableData = aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0
-                                    ? formatTableData(aiResponse.data)
-                                    : null;
-
-                                return (
-                                    <div>
-                                        <h3 style={{
-                                            fontSize: '16px',
-                                            fontWeight: '700',
-                                            color: '#1B5B7E',
-                                            marginBottom: '20px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px'
-                                        }}>
-                                            <Lightbulb size={18} color="#1B5B7E" />
-                                            AI Response
-                                        </h3>
-
-                                        {/* We now show the question/answer text in the chat bubbles above.
-                                            Keep this block for the very first interaction only so content
-                                            isn't duplicated. */}
-                                        {parsedSummary.question && aiChatHistory.length === 0 && (
-                                            <div style={{
-                                                background: '#F0F9FF',
-                                                border: '1px solid #BAE6FD',
-                                                borderRadius: '8px',
-                                                padding: '15px',
-                                                marginBottom: '20px'
-                                            }}>
-                                                <h4 style={{
-                                                    fontSize: '14px',
-                                                    fontWeight: '600',
-                                                    color: '#1B5B7E',
-                                                    marginBottom: '10px'
-                                                }}>
-                                                    Based on the Question
-                                                </h4>
-                                                <p style={{
-                                                    color: '#374151',
-                                                    fontSize: '14px',
-                                                    margin: 0,
-                                                    fontStyle: 'italic'
-                                                }}>
-                                                    "{parsedSummary.question}"
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Generated SQL Query (collapsed by default) */}
-                                        {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
-                                            <details style={{ marginTop: '10px', marginBottom: '25px' }}>
-                                                <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                    <Search size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
-                                                    Generated SQL Query
-                                                </summary>
-                                                <pre style={{
-                                                    background: '#1F2937',
-                                                    color: '#F9FAFB',
-                                                    padding: '15px',
-                                                    borderRadius: '8px',
-                                                    fontSize: '13px',
-                                                    overflow: 'auto',
-                                                    fontFamily: 'Monaco, "Courier New", monospace',
-                                                    lineHeight: '1.6',
-                                                    border: '1px solid #374151',
-                                                    marginTop: '10px',
-                                                    marginBottom: 0
-                                                }}>
-                                                    {aiResponse.sql}
-                                                </pre>
-                                            </details>
-                                        )}
-
-                                        {/* AI Insight narrative (above query results) */}
-                                        {parsedSummary.other.length > 0 && (
-                                            <div style={{
-                                                background: '#F0F9FF',
-                                                border: '1px solid #BAE6FD',
-                                                borderRadius: '8px',
-                                                padding: '15px',
-                                                marginBottom: '20px',
-                                                lineHeight: '1.6'
-                                            }}>
-                                                <h4 style={{
-                                                    fontSize: '14px',
-                                                    fontWeight: '600',
-                                                    color: '#1B5B7E',
-                                                    marginBottom: '10px'
-                                                }}>
-                                                    AI Insight
-                                                </h4>
-                                                {parsedSummary.other.map((line, idx) => (
-                                                    <div key={idx} style={{
-                                                        marginBottom: idx < parsedSummary.other.length - 1 ? '10px' : 0,
-                                                        color: '#374151',
-                                                        fontSize: '13px'
-                                                    }}>
-                                                        {line}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* 3. Query Results Table */}
-                                        {tableData && (
-                                            <div style={{ marginBottom: '20px' }}>
-                                                <h4 style={{
-                                                    fontSize: '14px',
-                                                    fontWeight: '600',
-                                                    color: '#1B5B7E',
-                                                    marginBottom: '12px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px'
-                                                }}>
-                                                    <Target size={16} color="#1B5B7E" />
-                                                    Query Results ({aiResponse.row_count || aiResponse.data.length} row{aiResponse.data.length !== 1 ? 's' : ''})
-                                                </h4>
-                                                <div style={{
-                                                    overflowX: 'auto',
-                                                    borderRadius: '8px',
-                                                    border: '1px solid #E5E7EB',
-                                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                                                }}>
-                                                    <table style={{
-                                                        width: '100%',
-                                                        borderCollapse: 'collapse',
-                                                        background: '#FFFFFF',
-                                                        fontSize: '13px'
-                                                    }}>
-                                                        <thead>
-                                                            <tr style={{
-                                                                background: '#F9FAFB',
-                                                                borderBottom: '2px solid #E5E7EB'
-                                                            }}>
-                                                                {tableData.columns.map((col, colIdx) => (
-                                                                    <th key={colIdx} style={{
-                                                                        padding: '12px 15px',
-                                                                        textAlign: 'left',
-                                                                        fontWeight: '600',
-                                                                        color: '#1B5B7E',
-                                                                        fontSize: '12px',
-                                                                        textTransform: 'uppercase',
-                                                                        letterSpacing: '0.5px'
-                                                                    }}>
-                                                                        {col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                                                    </th>
-                                                                ))}
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {tableData.rows.map((row, rowIdx) => (
-                                                                <tr key={rowIdx} style={{
-                                                                    borderBottom: rowIdx < tableData.rows.length - 1 ? '1px solid #F3F4F6' : 'none',
-                                                                    transition: 'background-color 0.2s'
-                                                                }}
-                                                                    onMouseEnter={(e) => e.currentTarget.style.background = '#F9FAFB'}
-                                                                    onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}>
-                                                                    {tableData.columns.map((col, colIdx) => {
-                                                                        const value = row[col];
-                                                                        const isCurrency = col.toLowerCase().includes('revenue') ||
-                                                                            col.toLowerCase().includes('amount') ||
-                                                                            col.toLowerCase().includes('cost') ||
-                                                                            col.toLowerCase().includes('expense') ||
-                                                                            col.toLowerCase().includes('income') ||
-                                                                            col.toLowerCase().includes('budget');
-                                                                        const formattedValue = isCurrency && typeof value === 'number'
-                                                                            ? formatCurrency(value * 10)
-                                                                            : formatNumber(value);
-
-                                                                        return (
-                                                                            <td key={colIdx} style={{
-                                                                                padding: '12px 15px',
-                                                                                color: '#374151',
-                                                                                fontWeight: isCurrency ? '600' : '400'
-                                                                            }}>
-                                                                                {formattedValue}
-                                                                            </td>
-                                                                        );
-                                                                    })}
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* 4. Key Statistics */}
-                                        {parsedSummary.keyStats.length > 0 && (
-                                            <div style={{
-                                                background: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
-                                                border: '1px solid #7DD3FC',
-                                                borderRadius: '12px',
-                                                padding: '20px',
-                                                marginBottom: '20px',
-                                                boxShadow: '0 2px 8px rgba(27, 91, 126, 0.1)'
-                                            }}>
-                                                <h4 style={{
-                                                    fontSize: '15px',
-                                                    fontWeight: '700',
-                                                    color: '#1B5B7E',
-                                                    marginBottom: '16px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '10px',
-                                                    textTransform: 'uppercase',
-                                                    letterSpacing: '0.5px'
-                                                }}>
-                                                    <Target size={18} color="#1B5B7E" />
-                                                    Key Statistics
-                                                </h4>
-                                                <div style={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                                                    gap: '12px'
-                                                }}>
-                                                    {parsedSummary.keyStats.map((stat, idx) => {
-                                                        const [key, ...valueParts] = stat.split(':');
-                                                        const value = valueParts.join(':').trim();
-
-                                                        // Parse value to extract min, max, avg if present
-                                                        const minMatch = value.match(/min=([\d.]+)/);
-                                                        const maxMatch = value.match(/max=([\d.]+)/);
-                                                        const avgMatch = value.match(/avg=([\d.]+)/);
-
-                                                        const isNumericValue = /^[\d.]+$/.test(value.trim());
-                                                        const formattedValue = isNumericValue && parseFloat(value)
-                                                            ? formatNumber(parseFloat(value))
-                                                            : value;
-
-                                                        return (
-                                                            <div key={idx} style={{
-                                                                background: '#FFFFFF',
-                                                                border: '1px solid #BAE6FD',
-                                                                borderRadius: '8px',
-                                                                padding: '14px',
-                                                                display: 'flex',
-                                                                flexDirection: 'column',
-                                                                gap: '6px',
-                                                                transition: 'all 0.2s',
-                                                                boxShadow: '0 1px 3px rgba(27, 91, 126, 0.08)'
-                                                            }}
-                                                                onMouseEnter={(e) => {
-                                                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(27, 91, 126, 0.15)';
-                                                                    e.currentTarget.style.borderColor = '#7DD3FC';
-                                                                }}
-                                                                onMouseLeave={(e) => {
-                                                                    e.currentTarget.style.transform = 'translateY(0)';
-                                                                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(27, 91, 126, 0.08)';
-                                                                    e.currentTarget.style.borderColor = '#BAE6FD';
-                                                                }}>
-                                                                <div style={{
-                                                                    fontSize: '11px',
-                                                                    fontWeight: '600',
-                                                                    color: '#689EC2',
-                                                                    textTransform: 'uppercase',
-                                                                    letterSpacing: '0.5px',
-                                                                    marginBottom: '4px'
-                                                                }}>
-                                                                    {key.trim().replace(/_/g, ' ')}
-                                                                </div>
-                                                                {minMatch || maxMatch || avgMatch ? (
-                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                                        {minMatch && (
-                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                                                                <span style={{ color: '#6B7280' }}>Min:</span>
-                                                                                <strong style={{ color: '#1B5B7E' }}>{formatNumber(parseFloat(minMatch[1]))}</strong>
-                                                                            </div>
-                                                                        )}
-                                                                        {maxMatch && (
-                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                                                                <span style={{ color: '#6B7280' }}>Max:</span>
-                                                                                <strong style={{ color: '#1B5B7E' }}>{formatNumber(parseFloat(maxMatch[1]))}</strong>
-                                                                            </div>
-                                                                        )}
-                                                                        {avgMatch && (
-                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                                                                <span style={{ color: '#6B7280' }}>Avg:</span>
-                                                                                <strong style={{ color: '#1B5B7E' }}>{formatNumber(parseFloat(avgMatch[1]))}</strong>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                ) : (
-                                                                    <div style={{
-                                                                        fontSize: '16px',
-                                                                        fontWeight: '700',
-                                                                        color: '#1B5B7E',
-                                                                        marginTop: '4px'
-                                                                    }}>
-                                                                        {formattedValue}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* 5. Data Section */}
-                                        {parsedSummary.data.length > 0 && (
-                                            <div style={{
-                                                background: '#F9FAFB',
-                                                borderRadius: '4px',
-                                                display: 'inline-block'
-                                            }}>
-                                                <h4 style={{
-                                                    fontSize: '14px',
-                                                    fontWeight: '600',
-                                                    color: '#1B5B7E',
-                                                    marginBottom: '12px'
-                                                }}>
-                                                    Data
-                                                </h4>
-                                                <div style={{
-                                                    fontFamily: 'Monaco, "Courier New", monospace',
-                                                    fontSize: '12px',
-                                                    color: '#374151',
-                                                    lineHeight: '1.8'
-                                                }}>
-                                                    {parsedSummary.data.map((line, idx) => (
-                                                        <div key={idx}>{line}</div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                    </div>
-                                );
-                            })()}
-                            {/* (removed duplicate "Conversation history" block to avoid showing chat twice) */}
-
-                            {/* Response with data but no summary */}
-                            {!aiResponse.summary && !aiResponse.isConversational && aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 && (() => {
-                                const tableData = formatTableData(aiResponse.data);
-                                if (!tableData) return null;
-
-                                return (
-                                    <div>
-                                        <h3 style={{
-                                            fontSize: '16px',
-                                            fontWeight: '700',
-                                            color: '#1B5B7E',
-                                            marginBottom: '8px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px'
-                                        }}>
-                                            <Target size={18} color="#1B5B7E" />
-                                            Query Results
-                                        </h3>
-                                        <p style={{
-                                            color: '#6B7280',
-                                            fontSize: '13px',
-                                            marginBottom: '15px'
-                                        }}>
-                                            Found {aiResponse.row_count || aiResponse.data.length} result{aiResponse.data.length !== 1 ? 's' : ''}
-                                        </p>
-                                        <div style={{
-                                            overflowX: 'auto',
-                                            borderRadius: '8px',
-                                            border: '1px solid #E5E7EB',
-                                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                                            marginBottom: '15px'
-                                        }}>
-                                            <table style={{
-                                                width: '100%',
-                                                borderCollapse: 'collapse',
-                                                background: '#FFFFFF',
-                                                fontSize: '13px'
-                                            }}>
-                                                <thead>
-                                                    <tr style={{
-                                                        background: '#F9FAFB',
-                                                        borderBottom: '2px solid #E5E7EB'
-                                                    }}>
-                                                        {tableData.columns.map((col, colIdx) => (
-                                                            <th key={colIdx} style={{
-                                                                padding: '12px 15px',
-                                                                textAlign: 'left',
-                                                                fontWeight: '600',
-                                                                color: '#1B5B7E',
-                                                                fontSize: '12px',
-                                                                textTransform: 'uppercase',
-                                                                letterSpacing: '0.5px'
-                                                            }}>
-                                                                {col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                                            </th>
-                                                        ))}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {tableData.rows.map((row, rowIdx) => (
-                                                        <tr key={rowIdx} style={{
-                                                            borderBottom: rowIdx < tableData.rows.length - 1 ? '1px solid #F3F4F6' : 'none'
-                                                        }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#F9FAFB'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}>
-                                                            {tableData.columns.map((col, colIdx) => {
-                                                                const value = row[col];
-                                                                const isCurrency = col.toLowerCase().includes('revenue') ||
-                                                                    col.toLowerCase().includes('amount') ||
-                                                                    col.toLowerCase().includes('cost') ||
-                                                                    col.toLowerCase().includes('expense') ||
-                                                                    col.toLowerCase().includes('income') ||
-                                                                    col.toLowerCase().includes('budget');
-                                                                const formattedValue = isCurrency && typeof value === 'number'
-                                                                    ? formatCurrency(value * 10)
-                                                                    : formatNumber(value);
-
-                                                                return (
-                                                                    <td key={colIdx} style={{
-                                                                        padding: '12px 15px',
-                                                                        color: '#374151',
-                                                                        fontWeight: isCurrency ? '600' : '400'
-                                                                    }}>
-                                                                        {formattedValue}
-                                                                    </td>
-                                                                );
-                                                            })}
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
                                         </div>
-                                        {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
-                                            <details style={{ marginTop: '10px' }}>
-                                                <summary style={{
-                                                    cursor: 'pointer',
-                                                    color: '#689EC2',
-                                                    fontWeight: '600',
-                                                    fontSize: '13px',
-                                                    padding: '8px 12px',
-                                                    background: '#F9FAFB',
-                                                    borderRadius: '6px',
-                                                    border: '1px solid #E5E7EB',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px'
-                                                }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.background = '#F3F4F6';
-                                                        e.currentTarget.style.borderColor = '#689EC2';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.background = '#F9FAFB';
-                                                        e.currentTarget.style.borderColor = '#E5E7EB';
-                                                    }}>
-                                                    <Search size={14} />
-                                                    View SQL Query
-                                                </summary>
-                                                <pre style={{
-                                                    background: '#1F2937',
-                                                    color: '#F9FAFB',
-                                                    padding: '15px',
-                                                    borderRadius: '6px',
-                                                    fontSize: '12px',
-                                                    marginTop: '8px',
-                                                    overflow: 'auto',
-                                                    fontFamily: 'Monaco, "Courier New", monospace',
-                                                    lineHeight: '1.5',
-                                                    border: '1px solid #374151'
-                                                }}>
-                                                    {aiResponse.sql}
-                                                </pre>
-                                            </details>
-                                        )}
-                                    </div>
-                                );
-                            })()}
 
-                            {/* No data found */}
-                            {!aiResponse.summary && !aiResponse.isConversational && !aiResponse.hasError && (!aiResponse.data || (Array.isArray(aiResponse.data) && aiResponse.data.length === 0)) && (
-                                <div>
-                                    <h3>AI Response:</h3>
-                                    <p>No data found for your query.</p>
-                                    {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
-                                        <details style={{ marginTop: '10px' }}>
-                                            <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> View SQL Query
-                                            </summary>
-                                            <pre style={{
-                                                background: '#f5f5f5',
-                                                padding: '10px',
-                                                borderRadius: '5px',
-                                                fontSize: '11px',
-                                                marginTop: '5px'
-                                            }}>
-                                                {aiResponse.sql}
-                                            </pre>
-                                        </details>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -1833,27 +1138,15 @@ const FinancialHealth = () => {
                             </div>
                         </div>
                     )}
-                    {/* Initial helper content only when there is no chat yet */}
-                    {!aiResponse && !aiLoading && !aiError && aiChatHistory.length === 0 && (
-                        <div>
-                            <h3>1. Revenue Performance Overview:</h3>
-                            <p>
-                                Actual Revenue: <strong>{formatCurrency((revenueSummary?.total_revenue || kpis?.total_revenue || 26.5) * 10)}</strong>,
-                                Budgeted Revenue: <strong>{formatCurrency((revenueSummary?.budgeted_revenue || kpis?.budgeted_revenue || 22.4) * 10)}</strong>,
-                                Revenue Variance: <strong>{revenueSummary?.variance_pct ? (revenueSummary.variance_pct > 0 ? '+' : '') + (revenueSummary.variance_pct * 100).toFixed(1) + '%' : '+18.4%'}</strong>
-                                {revenueSummary?.variance && (
-                                    <> ({(revenueSummary.variance > 0 ? 'Positive' : 'Negative')} variance of <strong>{formatCurrency(Math.abs(revenueSummary.variance) * 10)}</strong>)</>
-                                )}
-                            </p>
-                            <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '15px', padding: '10px', background: '#F3F4F6', borderRadius: '5px' }}>
-                                <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>💡 Try asking questions like:</p>
-                                <ul style={{ marginLeft: '20px', marginTop: '5px' }}>
-                                    <li>"What was the total revenue in 2024?"</li>
-                                    <li>"Show me revenue by quarter"</li>
-                                    <li>"Which departments had the highest budget variance?"</li>
-                                    <li>"What is the average operating margin?"</li>
-                                    <li>"Show me months with non-revenue water above 25%"</li>
-                                </ul>
+
+                    {aiError && (
+                        <div className="fh-chat-message assistant">
+                            <div className="fh-chat-bubble assistant" style={{ border: '1px solid #FECACA', background: '#FEF2F2', color: '#991B1B' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <AlertTriangle size={16} />
+                                    <strong>Error:</strong>
+                                </div>
+                                <div style={{ marginTop: '5px', fontSize: '13px' }}>{aiError}</div>
                             </div>
                         </div>
                     )}
