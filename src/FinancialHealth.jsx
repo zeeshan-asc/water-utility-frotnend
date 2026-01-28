@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     LineChart, Line, AreaChart, Area, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     Legend, ReferenceLine
 } from 'recharts';
 import {
-    Search, TrendingUp, TrendingDown, AlertCircle, AlertTriangle, CheckCircle, XCircle, Flag, Lightbulb, Target
+    Search, TrendingUp, TrendingDown, AlertCircle, AlertTriangle, CheckCircle, XCircle, Flag, Lightbulb, Target, Trash2
 } from 'lucide-react';
 import PageNavigation from './PageNavigation';
 import './FinancialHealth.css';
@@ -230,6 +230,15 @@ const FinancialHealth = () => {
     const [backendHealth, setBackendHealth] = useState(null);
     const [aiHealth, setAiHealth] = useState(null);
 
+    const chatContainerRef = useRef(null);
+
+    // Auto-scroll to bottom when chat history changes or loading state updates
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [aiChatHistory, aiLoading, aiStatusMessage]);
+
     // Restore chat history from sessionStorage on mount
     useEffect(() => {
         try {
@@ -270,8 +279,29 @@ const FinancialHealth = () => {
         return json.data;
     };
 
-    // Fetch AI response
+    // Fetch AI response with progressive streaming
     const fetchAIResponse = async (question) => {
+        const updateLastTurn = (updates) => {
+            setAiChatHistory(prev => {
+                const next = [...prev];
+                if (next.length > 0) {
+                    next[next.length - 1] = { ...next[next.length - 1], ...updates };
+                }
+                return next;
+            });
+        };
+
+        const streamText = async (text) => {
+            if (!text) return;
+            let current = '';
+            for (let i = 0; i < text.length; i++) {
+                current += text[i];
+                updateLastTurn({ summary: current });
+                // Slow down slightly for typewriter effect
+                await new Promise(r => setTimeout(r, 10));
+            }
+        };
+
         try {
             setAiLoading(true);
             setAiError(null);
@@ -282,21 +312,12 @@ const FinancialHealth = () => {
             // Step 1: Generate SQL from natural language
             const generateResponse = await fetch(`${API_BASE_URL}/api/v0/ai/generate-sql`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    question: question
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question })
             });
 
-            console.log('Generate SQL response status:', generateResponse.status);
-            console.log('Generate SQL response ok:', generateResponse.ok);
-
             if (!generateResponse.ok) {
-                const errorText = await generateResponse.text();
-                console.error('Response error:', errorText);
-                throw new Error(`HTTP error! status: ${generateResponse.status}. ${errorText}`);
+                throw new Error(`SQL generation failed: ${generateResponse.status}`);
             }
 
             const generateJson = await generateResponse.json();
@@ -316,26 +337,9 @@ const FinancialHealth = () => {
 
             // If it's a text response, just show the message and skip SQL execution
             if (isTextResponse && sql) {
-                const responseObj = {
-                    success: true,
-                    sql: null,
-                    data: null,
-                    summary: sql,
-                    isConversational: true,
-                    type: responseType || 'text'
-                };
-                setAiResponse(responseObj);
-                setAiChatHistory(prev => [
-                    ...prev,
-                    {
-                        question,
-                        summary: responseObj.summary,
-                        type: responseObj.type,
-                        sql: null,
-                        data: null
-                    }
-                ]);
-                console.log('AI response set successfully (text response)');
+                await streamText(sql);
+                updateLastTurn({ isStreaming: false });
+                setAiLoading(false);
                 return;
             }
 
@@ -344,30 +348,21 @@ const FinancialHealth = () => {
             // Step 2: If SQL exists and is valid, run it first
             if (sql && !isTextResponse) {
                 try {
-                    console.log('Running SQL query:', sql);
+                    setAiStatusMessage('Executing database query...');
                     const runResponse = await fetch(`${API_BASE_URL}/api/v0/ai/run-sql`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            sql: sql
-                        })
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sql })
                     });
 
                     if (runResponse.ok) {
                         const runJson = await runResponse.json();
                         sqlResults = runJson.success ? runJson.data : runJson;
-                        console.log('SQL execution successful, results:', sqlResults);
-                    } else {
-                        // SQL generation succeeded but execution failed
-                        const errorText = await runResponse.text();
-                        console.warn('SQL execution failed:', errorText);
-                        // Continue to summary even if SQL execution failed
+                        // Show results immediately
+                        updateLastTurn({ data: sqlResults });
                     }
                 } catch (runErr) {
                     console.warn('SQL execution error:', runErr);
-                    // Continue to summary even if SQL execution failed
                 }
             }
 
@@ -388,10 +383,8 @@ const FinancialHealth = () => {
 
                 const summaryResponse = await fetch(`${API_BASE_URL}/api/v0/vanna/generate_summary`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(summaryPayload)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, sql, results: sqlResults })
                 });
 
                 if (summaryResponse.ok) {
@@ -470,16 +463,15 @@ const FinancialHealth = () => {
 
             console.log('AI response set successfully');
         } catch (err) {
-            console.error('Error fetching AI response:', err);
-            console.error('Error details:', {
-                message: err.message,
-                stack: err.stack,
-                name: err.name
+            console.error('AI Error:', err);
+            setAiError(err.message);
+            updateLastTurn({
+                summary: `Error: ${err.message}`,
+                isStreaming: false
             });
-            setAiError(err.message || 'Failed to get AI response. Make sure the backend API is running and the AI service is configured.');
-            setAiResponse(null);
         } finally {
             setAiLoading(false);
+            setAiStatusMessage('');
         }
     };
 
@@ -986,246 +978,223 @@ const FinancialHealth = () => {
             </div>
 
             {/* AI Query Section */}
-            <div className="fh-ai-query-section">
-                {/* On first load (no interaction yet), show input above. After interaction, input moves below. */}
-                {aiChatHistory.length === 0 && !aiResponse && !aiLoading && !aiError && renderAiSearchBar()}
-
-                <div className="fh-ai-response-box">
-                    {aiLoading && (
-                        <div style={{ textAlign: 'center', padding: '20px', color: '#1B5B7E' }}>
-                            <p>Analyzing your question...</p>
-                        </div>
-                    )}
-
-                    {aiError && (
-                        <div
+            <div className="fh-ai-query-section" id="ai-chat-section">
+                <div className="fh-ai-query-header">
+                    <div className="fh-ai-query-title">
+                        <Lightbulb size={20} />
+                        AI Financial Co-pilot
+                    </div>
+                    {aiChatHistory.length > 0 && (
+                        <button
+                            onClick={() => {
+                                if (window.confirm("Are you sure you want to clear your chat history?")) {
+                                    setAiChatHistory([]);
+                                }
+                            }}
+                            className="fh-clear-chat-btn"
                             style={{
-                                color: '#DC2626',
-                                padding: '15px',
-                                background: '#FEE2E2',
-                                borderRadius: '5px',
-                                marginBottom: '10px'
+                                background: 'rgba(104, 158, 194, 0.1)',
+                                border: '1px solid rgba(104, 158, 194, 0.2)',
+                                color: '#1B5B7E',
+                                fontSize: '11px',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.2s'
                             }}
                         >
-                            <strong>Error:</strong> {aiError}
-                            <div style={{ fontSize: '12px', marginTop: '8px', color: '#991B1B' }}>
-                                <p>💡 Troubleshooting:</p>
-                                <ul style={{ marginLeft: '20px', marginTop: '5px' }}>
-                                    <li>Make sure the backend API is running at {API_BASE_URL}</li>
-                                    <li>Check that the AI service is configured (OpenAI API key, etc.)</li>
-                                    <li>Verify the endpoint: {API_BASE_URL}/api/v0/ai/generate-sql</li>
-                                    <li>Check browser console for detailed error messages</li>
-                                </ul>
+                            <Trash2 size={12} />
+                            Clear History
+                        </button>
+                    )}
+                </div>
+
+                <div className="fh-ai-response-box" ref={chatContainerRef}>
+                    {aiChatHistory.length === 0 && !aiLoading && (
+                        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                background: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
+                                borderRadius: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 20px',
+                                boxShadow: '0 4px 12px rgba(27, 91, 126, 0.1)'
+                            }}>
+                                <Lightbulb size={32} color="#1B5B7E" />
+                            </div>
+                            <h3 style={{ fontSize: '20px', color: '#1B5B7E', marginBottom: '10px', fontWeight: 700 }}>How can I help you today?</h3>
+                            <p style={{ color: '#6B7280', maxWidth: '400px', margin: '0 auto 24px', fontSize: '14px' }}>
+                                Ask anything about your financial data, revenue trends, or budget variances.
+                            </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', maxWidth: '540px', margin: '0 auto' }}>
+                                {[
+                                    "Total revenue in 2024?",
+                                    "Revenue by quarter",
+                                    "Highest budget variance?",
+                                    "Average operating margin?"
+                                ].map((suggestion, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => {
+                                            setAiQuestion(suggestion);
+                                            fetchAIResponse(suggestion);
+                                        }}
+                                        className="fh-suggestion-chip"
+                                        style={{
+                                            padding: '12px 14px',
+                                            background: '#FFFFFF',
+                                            border: '1px solid #E5E7EB',
+                                            borderRadius: '10px',
+                                            fontSize: '13px',
+                                            color: '#374151',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <Search size={14} color="#689EC2" />
+                                        <span>{suggestion}</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Chat history thread (each turn includes question, answer, and, for past turns, any SQL/results) */}
-                    {aiChatHistory.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '10px' }}>
-                            {aiChatHistory.map((turn, idx) => {
-                                const isLastTurn = idx === aiChatHistory.length - 1;
-                                const hasStructuredData =
-                                    turn && turn.type !== 'text' && (turn.sql || (turn.data && Array.isArray(turn.data) && turn.data.length > 0));
-                                const parsed = hasStructuredData ? parseSummary(turn.summary) : null;
-                                const tableData =
-                                    hasStructuredData && turn.data && Array.isArray(turn.data) && turn.data.length > 0
-                                        ? formatTableData(turn.data)
-                                        : null;
+                    {aiChatHistory.map((turn, idx) => {
+                        const isLast = idx === aiChatHistory.length - 1;
+                        const hasStructuredData = turn.type !== 'text' && (turn.sql || (turn.data && turn.data.length > 0));
+                        const parsedSummary = hasStructuredData ? parseSummary(turn.summary) : null;
+                        const tableData = hasStructuredData && turn.data ? formatTableData(turn.data) : null;
 
-                                return (
-                                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        {/* User question bubble */}
-                                        <div
-                                            style={{
-                                                alignSelf: 'flex-end',
-                                                maxWidth: '80%',
-                                                padding: '8px 12px',
-                                                borderRadius: '16px',
-                                                background: '#1B5B7E',
-                                                color: '#FFFFFF',
-                                                fontSize: '13px',
-                                                lineHeight: 1.5
-                                            }}
-                                        >
-                                            {turn.question}
-                                        </div>
+                        return (
+                            <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {/* User Message */}
+                                <div className="fh-chat-message user">
+                                    <div className="fh-chat-bubble user">
+                                        {turn.question}
+                                    </div>
+                                </div>
 
-                                        {/* Assistant high-level answer bubble */}
-                                        <div
-                                            style={{
-                                                alignSelf: 'flex-start',
-                                                maxWidth: '90%',
-                                                padding: '10px 14px',
-                                                borderRadius: '12px',
-                                                background: '#F0F9FF',
-                                                border: '1px solid #BAE6FD',
-                                                color: '#374151',
-                                                fontSize: '13px',
-                                                lineHeight: 1.6
-                                            }}
-                                        >
-                                            {turn.summary}
-                                        </div>
-
-                                        {/* Optional per-turn insight / SQL / table.
-                                            To avoid duplicating the "live" answer UI, we only show this
-                                            for history items, not the most recent turn. */}
-                                        {hasStructuredData && !isLastTurn && (
-                                            <div
-                                                style={{
-                                                    alignSelf: 'stretch',
-                                                    maxWidth: '100%',
-                                                    padding: '10px 12px',
-                                                    borderRadius: '10px',
-                                                    background: '#F9FAFB',
-                                                    border: '1px solid #E5E7EB',
-                                                    marginTop: '2px'
-                                                }}
-                                            >
-                                                {/* AI Insight block */}
-                                                {parsed && parsed.other && parsed.other.length > 0 && (
-                                                    <div
-                                                        style={{
-                                                            background: '#F0F9FF',
-                                                            border: '1px solid #BAE6FD',
-                                                            borderRadius: '8px',
-                                                            padding: '10px',
-                                                            marginBottom: tableData || turn.sql ? '10px' : 0,
-                                                            lineHeight: 1.6
-                                                        }}
-                                                    >
-                                                        <div
-                                                            style={{
-                                                                fontSize: '13px',
-                                                                fontWeight: 600,
-                                                                color: '#1B5B7E',
-                                                                marginBottom: '6px'
-                                                            }}
-                                                        >
-                                                            AI Insight
-                                                        </div>
-                                                        {parsed.other.map((line, i) => (
-                                                            <div
-                                                                key={i}
-                                                                style={{
-                                                                    fontSize: '12px',
-                                                                    color: '#374151',
-                                                                    marginBottom: i < parsed.other.length - 1 ? '4px' : 0
-                                                                }}
-                                                            >
-                                                                {line}
+                                {/* Assistant Message */}
+                                <div className="fh-chat-message assistant">
+                                    <div className="fh-chat-bubble assistant">
+                                        {/* Simple text for non-structured or previous turns summary */}
+                                        {!isLast ? (
+                                            <div>{turn.summary}</div>
+                                        ) : (
+                                            /* Rich rendering for the latest turn */
+                                            <div style={{ width: '100%' }}>
+                                                {/* Text content from parsed summary */}
+                                                {(parsedSummary && (parsedSummary.other.length > 0 || parsedSummary.keyStats.length > 0)) ? (
+                                                    <div style={{ marginBottom: '15px' }}>
+                                                        {parsedSummary.other.map((line, i) => (
+                                                            <div key={i} style={{ marginBottom: '8px' }}>{line}</div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ marginBottom: '15px' }}>
+                                                        {turn.summary || (turn.isStreaming && (
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                                <div style={{ fontSize: '11px', color: '#689EC2', fontStyle: 'italic' }}>
+                                                                    {aiStatusMessage}
+                                                                </div>
+                                                                <div className="fh-typing-indicator">
+                                                                    <span></span>
+                                                                    <span></span>
+                                                                    <span></span>
+                                                                </div>
                                                             </div>
                                                         ))}
                                                     </div>
                                                 )}
 
-                                                {/* Query results table, if available */}
-                                                {tableData && (
-                                                    <div style={{ marginTop: parsed && parsed.other.length > 0 ? '4px' : 0 }}>
-                                                        <h4
-                                                            style={{
-                                                                fontSize: '13px',
-                                                                fontWeight: 600,
-                                                                color: '#1B5B7E',
-                                                                marginBottom: '8px',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '6px'
-                                                            }}
-                                                        >
-                                                            Query Results ({tableData.rows.length} rows)
-                                                        </h4>
-                                                        <div style={{ overflowX: 'auto' }}>
-                                                            <table
-                                                                className="fh-ai-history-table"
-                                                                style={{
-                                                                    width: '100%',
-                                                                    borderCollapse: 'collapse',
-                                                                    background: '#FFFFFF',
-                                                                    fontSize: '12px'
-                                                                }}
-                                                            >
-                                                                <thead>
+                                                {/* Key Stats for last turn */}
+                                                {isLast && parsedSummary && parsedSummary.keyStats.length > 0 && (
+                                                    <div style={{
+                                                        display: 'grid',
+                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                                        gap: '10px',
+                                                        marginBottom: '15px'
+                                                    }}>
+                                                        {parsedSummary.keyStats.map((stat, i) => {
+                                                            const [label, ...valParts] = stat.split(':');
+                                                            const val = valParts.join(':').trim();
+                                                            return (
+                                                                <div key={i} style={{
+                                                                    background: '#F0F9FF',
+                                                                    padding: '10px',
+                                                                    borderRadius: '8px',
+                                                                    border: '1px solid #BAE6FD'
+                                                                }}>
+                                                                    <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#689EC2', fontWeight: 600 }}>{label}</div>
+                                                                    <div style={{ fontSize: '14px', color: '#1B5B7E', fontWeight: 700 }}>{val}</div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+
+                                                {/* Table for last turn */}
+                                                {isLast && tableData && (
+                                                    <div style={{ marginBottom: '15px' }}>
+                                                        <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                                                <thead style={{ background: '#F9FAFB' }}>
                                                                     <tr>
-                                                                        {tableData.columns.map((col) => (
-                                                                            <th
-                                                                                key={col}
-                                                                                style={{
-                                                                                    padding: '8px 10px',
-                                                                                    textAlign: 'left',
-                                                                                    fontWeight: 600,
-                                                                                    color: '#1B5B7E',
-                                                                                    fontSize: '11px',
-                                                                                    textTransform: 'uppercase',
-                                                                                    letterSpacing: '0.4px',
-                                                                                    borderBottom: '1px solid #E5E7EB'
-                                                                                }}
-                                                                            >
+                                                                        {tableData.columns.slice(0, 5).map(col => (
+                                                                            <th key={col} style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #E5E7EB', color: '#1B5B7E' }}>
                                                                                 {col.replace(/_/g, ' ')}
                                                                             </th>
                                                                         ))}
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    {tableData.rows.map((row, rowIdx) => (
-                                                                        <tr key={rowIdx} style={{ borderBottom: '1px solid #F3F4F6' }}>
-                                                                            {tableData.columns.map((col) => (
-                                                                                <td
-                                                                                    key={col}
-                                                                                    style={{
-                                                                                        padding: '8px 10px',
-                                                                                        color: '#374151',
-                                                                                        fontSize: '11px'
-                                                                                    }}
-                                                                                >
-                                                                                    {formatNumber(row[col])}
-                                                                                </td>
+                                                                    {tableData.rows.slice(0, 5).map((row, i) => (
+                                                                        <tr key={i} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                                                                            {tableData.columns.slice(0, 5).map(col => (
+                                                                                <td key={col} style={{ padding: '8px' }}>{formatNumber(row[col])}</td>
                                                                             ))}
                                                                         </tr>
                                                                     ))}
                                                                 </tbody>
                                                             </table>
                                                         </div>
+                                                        {tableData.rows.length > 5 && (
+                                                            <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '5px' }}>
+                                                                Showing 5 of {tableData.rows.length} rows.
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
 
-                                                {/* Generated SQL, collapsed per turn */}
-                                                {turn.sql && (
-                                                    <details style={{ marginTop: '8px' }}>
-                                                        <summary
-                                                            style={{
-                                                                cursor: 'pointer',
-                                                                color: '#689EC2',
-                                                                fontWeight: 600,
-                                                                fontSize: '12px'
-                                                            }}
-                                                        >
-                                                            Generated SQL Query
-                                                        </summary>
-                                                        <pre
-                                                            style={{
-                                                                background: '#1F2937',
-                                                                color: '#F9FAFB',
-                                                                padding: '10px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '11px',
-                                                                overflow: 'auto',
-                                                                fontFamily: 'Monaco, "Courier New", monospace',
-                                                                marginTop: '6px'
-                                                            }}
-                                                        >
+                                                {/* SQL Toggle for last turn */}
+                                                {isLast && turn.sql && (
+                                                    <details>
+                                                        <summary style={{ fontSize: '12px', cursor: 'pointer', color: '#689EC2', fontWeight: 600 }}>View Query Details</summary>
+                                                        <pre style={{
+                                                            fontSize: '11px',
+                                                            background: '#1F2937',
+                                                            color: '#F9FAFB',
+                                                            padding: '12px',
+                                                            borderRadius: '8px',
+                                                            overflow: 'auto',
+                                                            marginTop: '10px'
+                                                        }}>
                                                             {turn.sql}
                                                         </pre>
                                                     </details>
                                                 )}
                                             </div>
                                         )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
 
                     {/* Detailed view for the latest response (tables, SQL, etc.) */}
                     {aiResponse && !aiLoading && (
@@ -1617,10 +1586,8 @@ const FinancialHealth = () => {
                                         {parsedSummary.data.length > 0 && (
                                             <div style={{
                                                 background: '#F9FAFB',
-                                                border: '1px solid #E5E7EB',
-                                                borderRadius: '8px',
-                                                padding: '15px',
-                                                marginBottom: '20px'
+                                                borderRadius: '4px',
+                                                display: 'inline-block'
                                             }}>
                                                 <h4 style={{
                                                     fontSize: '14px',
@@ -1809,7 +1776,28 @@ const FinancialHealth = () => {
                                         </details>
                                     )}
                                 </div>
-                            )}
+                            </div>
+                        );
+                    })}
+
+                    {aiLoading && (!aiChatHistory.length || !aiChatHistory[aiChatHistory.length - 1]?.isStreaming) && (
+                        <div className="fh-chat-message assistant">
+                            <div className="fh-chat-bubble assistant" style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '8px',
+                                padding: '12px 16px',
+                                minWidth: '200px'
+                            }}>
+                                <div style={{ fontSize: '11px', color: '#689EC2', fontWeight: 500 }}>
+                                    {aiStatusMessage}
+                                </div>
+                                <div className="fh-typing-indicator">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
                         </div>
                     )}
                     {/* Initial helper content only when there is no chat yet */}
@@ -1838,8 +1826,7 @@ const FinancialHealth = () => {
                     )}
                 </div>
 
-                {/* After at least one answered question, keep the input anchored to the bottom */}
-                {aiChatHistory.length > 0 && renderAiSearchBar()}
+                {renderAiSearchBar()}
             </div>
 
             {/* Section Title */}
