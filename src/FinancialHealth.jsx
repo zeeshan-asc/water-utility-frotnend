@@ -10,7 +10,7 @@ import {
 import PageNavigation from './PageNavigation';
 import './FinancialHealth.css';
 
-const API_BASE_URL = 'http://localhost:8084';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8084';
 
 // Module-level cache to store financial health data (persists across remounts)
 let financialHealthDataCache = {
@@ -68,7 +68,7 @@ const formatNumber = (value) => {
 // Helper function to format table data
 const formatTableData = (data) => {
     if (!data || !Array.isArray(data) || data.length === 0) return null;
-    
+
     const columns = Object.keys(data[0]);
     return { columns, rows: data };
 };
@@ -76,7 +76,7 @@ const formatTableData = (data) => {
 // Helper function to parse summary into sections
 const parseSummary = (summary) => {
     if (!summary) return { question: '', keyStats: [], data: [], other: [] };
-    
+
     const lines = summary.split('\n').filter(line => line.trim());
     const result = {
         question: '',
@@ -84,14 +84,14 @@ const parseSummary = (summary) => {
         data: [],
         other: []
     };
-    
+
     let currentSection = 'other';
-    
+
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        
+
         // Detect "Based on the question" section
-        if (line.toLowerCase().includes('based on the question') || 
+        if (line.toLowerCase().includes('based on the question') ||
             line.toLowerCase().includes('question:')) {
             currentSection = 'question';
             // Extract the question part
@@ -103,21 +103,21 @@ const parseSummary = (summary) => {
             }
             continue;
         }
-        
+
         // Detect "Key statistics" section
-        if (line.toLowerCase().includes('key statistics') || 
+        if (line.toLowerCase().includes('key statistics') ||
             line.toLowerCase().includes('key stats')) {
             currentSection = 'keyStats';
             continue;
         }
-        
+
         // Detect "Data:" section
-        if (line.toLowerCase() === 'data:' || 
+        if (line.toLowerCase() === 'data:' ||
             line.toLowerCase().startsWith('data:')) {
             currentSection = 'data';
             continue;
         }
-        
+
         // Process content based on current section
         if (currentSection === 'keyStats') {
             if (line.startsWith('-') || line.startsWith('•')) {
@@ -144,7 +144,7 @@ const parseSummary = (summary) => {
             }
         }
     }
-    
+
     return result;
 };
 
@@ -185,18 +185,18 @@ const FinancialHealth = () => {
         const operatingMargin = kpis?.operating_margin || 0.184;
         const currentExpenses = currentRevenue * (1 - operatingMargin);
         const currentNetIncome = currentRevenue * operatingMargin;
-        
+
         const projectedRevenue = currentRevenue + revenueImpact;
         const projectedExpenses = currentExpenses + expenseImpact;
         const projectedNetIncome = projectedRevenue - projectedExpenses;
-        
+
         // Calculate debt service coverage (simplified - would need actual debt service payment)
         const debtService = (kpis?.outstanding_debt || 8.1) * 10 * 0.05; // Assume 5% annual debt service
         const debtServiceCoverage = debtService > 0 ? projectedNetIncome / debtService : 0;
-        
+
         // Determine financial viability
         const financialViability = projectedNetIncome > 0 && debtServiceCoverage > 1.25 ? 'Healthy' : 'At Risk';
-        
+
         return {
             projectedRevenue,
             projectedExpenses,
@@ -205,7 +205,7 @@ const FinancialHealth = () => {
             financialViability
         };
     };
-    
+
     // Data states
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -218,14 +218,14 @@ const FinancialHealth = () => {
     const [alerts, setAlerts] = useState([]);
     const [revenueSummary, setRevenueSummary] = useState(null);
     const [scenarios, setScenarios] = useState([]);
-    
+
     // AI Chatbot states
     const [aiQuestion, setAiQuestion] = useState('');
     const [aiResponse, setAiResponse] = useState(null);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiError, setAiError] = useState(null);
     const [aiChatHistory, setAiChatHistory] = useState([]);
-    
+
     // Health check states
     const [backendHealth, setBackendHealth] = useState(null);
     const [aiHealth, setAiHealth] = useState(null);
@@ -275,10 +275,10 @@ const FinancialHealth = () => {
         try {
             setAiLoading(true);
             setAiError(null);
-            
+
             console.log('Sending AI request:', question);
             console.log('API URL:', `${API_BASE_URL}/api/v0/ai/generate-sql`);
-            
+
             // Step 1: Generate SQL from natural language
             const generateResponse = await fetch(`${API_BASE_URL}/api/v0/ai/generate-sql`, {
                 method: 'POST',
@@ -298,22 +298,22 @@ const FinancialHealth = () => {
                 console.error('Response error:', errorText);
                 throw new Error(`HTTP error! status: ${generateResponse.status}. ${errorText}`);
             }
-            
+
             const generateJson = await generateResponse.json();
             console.log('Generate SQL response JSON:', generateJson);
-            
+
             // Handle response format: {"sql": "...", "success": true, "type": "sql"}
             // SQL is at top level, not nested in data
             const sql = generateJson.sql || (generateJson.success && generateJson.data?.sql) || generateJson.query;
             const responseType = generateJson.type || generateJson.data?.type;
-            
+
             // If type is "text" or SQL contains an error message, treat as text response
-            const isTextResponse = responseType === 'text' || 
-                                 (sql && (sql.includes('not allowed') || 
-                                         sql.includes('error') || 
-                                         sql.includes('Error') ||
-                                         sql.includes('LLM') && sql.includes('database')));
-            
+            const isTextResponse = responseType === 'text' ||
+                (sql && (sql.includes('not allowed') ||
+                    sql.includes('error') ||
+                    sql.includes('Error') ||
+                    sql.includes('LLM') && sql.includes('database')));
+
             // If it's a text response, just show the message and skip SQL execution
             if (isTextResponse && sql) {
                 const responseObj = {
@@ -338,9 +338,9 @@ const FinancialHealth = () => {
                 console.log('AI response set successfully (text response)');
                 return;
             }
-            
+
             let sqlResults = null;
-            
+
             // Step 2: If SQL exists and is valid, run it first
             if (sql && !isTextResponse) {
                 try {
@@ -370,14 +370,14 @@ const FinancialHealth = () => {
                     // Continue to summary even if SQL execution failed
                 }
             }
-            
+
             // Step 3: Generate summary (works with or without SQL results)
             try {
                 console.log('Generating summary...');
                 const summaryPayload = {
                     question: question
                 };
-                
+
                 // Include SQL and results if available
                 if (sql) {
                     summaryPayload.sql = sql;
@@ -385,7 +385,7 @@ const FinancialHealth = () => {
                 if (sqlResults) {
                     summaryPayload.results = sqlResults;
                 }
-                
+
                 const summaryResponse = await fetch(`${API_BASE_URL}/api/v0/vanna/generate_summary`, {
                     method: 'POST',
                     headers: {
@@ -397,7 +397,7 @@ const FinancialHealth = () => {
                 if (summaryResponse.ok) {
                     const summaryJson = await summaryResponse.json();
                     const summary = summaryJson.summary || summaryJson.text || summaryJson.data?.summary || summaryJson.data;
-                    
+
                     const responseObj = {
                         success: true,
                         sql: sql || null,
@@ -425,7 +425,7 @@ const FinancialHealth = () => {
                         success: true,
                         sql: sql || null,
                         data: sqlResults,
-                        summary: sqlResults 
+                        summary: sqlResults
                             ? `Query executed successfully. ${Array.isArray(sqlResults) ? sqlResults.length : Object.keys(sqlResults || {}).length} rows returned.`
                             : (isSqlType && sql ? `SQL generated: ${sql}` : 'Question processed successfully.'),
                         type: responseType || (sql ? 'sql' : 'text')
@@ -450,7 +450,7 @@ const FinancialHealth = () => {
                     success: true,
                     sql: sql || null,
                     data: sqlResults,
-                    summary: sqlResults 
+                    summary: sqlResults
                         ? `Query executed successfully. ${Array.isArray(sqlResults) ? sqlResults.length : Object.keys(sqlResults || {}).length} rows returned.`
                         : (isSqlType && sql ? `SQL generated: ${sql}` : 'Question processed successfully.'),
                     type: responseType || (sql ? 'sql' : 'text')
@@ -467,7 +467,7 @@ const FinancialHealth = () => {
                     }
                 ]);
             }
-            
+
             console.log('AI response set successfully');
         } catch (err) {
             console.error('Error fetching AI response:', err);
@@ -553,7 +553,7 @@ const FinancialHealth = () => {
                     setBackendHealth(backendHealthStatus);
                     financialHealthDataCache.backendHealth = backendHealthStatus;
                 }
-                
+
                 if (backendHealthStatus !== 'healthy') {
                     setError('Backend API is not reachable. Please ensure the server is running at ' + API_BASE_URL);
                     setLoading(false);
@@ -589,7 +589,7 @@ const FinancialHealth = () => {
                     const revenueResponse = await fetch(`${API_BASE_URL}/api/v0/dashboard/revenue/trends?period=monthly`);
                     const revenueData = await handleApiResponse(revenueResponse);
                     console.log('Revenue trends API response:', revenueData);
-                    
+
                     if (revenueData && Array.isArray(revenueData) && revenueData.length > 0) {
                         const formattedRevenue = revenueData.slice(-6).map(item => {
                             // Validate data structure
@@ -600,7 +600,7 @@ const FinancialHealth = () => {
                             // Backend returns: actual_revenue, budgeted_revenue, revenue_variance, period
                             const actualRevenue = Number(item.actual_revenue || item.revenue || item.actual || 0);
                             const budgetedRevenue = Number(item.budgeted_revenue || item.budgeted || item.budget || 0);
-                            
+
                             return {
                                 month: formatMonth(item.period || item.month || item.date),
                                 actual: actualRevenue,
@@ -608,7 +608,7 @@ const FinancialHealth = () => {
                                 budget: budgetedRevenue
                             };
                         }).filter(item => item !== null); // Remove invalid items
-                        
+
                         if (formattedRevenue.length > 0) {
                             console.log('Formatted revenue trends:', formattedRevenue);
                             setRevenueTrends(formattedRevenue);
@@ -671,23 +671,23 @@ const FinancialHealth = () => {
                     const debtData = await handleApiResponse(debtResponse);
                     // Transform debt data for DSCR chart
                     const dscrData = [
-                        { 
-                            year: '2023', 
-                            actual: debtData?.actual_coverage || 1.45, 
-                            required: debtData?.required_minimum || 1.30, 
-                            forecasted: null 
+                        {
+                            year: '2023',
+                            actual: debtData?.actual_coverage || 1.45,
+                            required: debtData?.required_minimum || 1.30,
+                            forecasted: null
                         },
-                        { 
-                            year: '2024', 
-                            actual: debtData?.debt_service_coverage || 1.57, 
-                            required: debtData?.required_minimum || 1.30, 
-                            forecasted: debtData?.projected_coverage || 1.57 
+                        {
+                            year: '2024',
+                            actual: debtData?.debt_service_coverage || 1.57,
+                            required: debtData?.required_minimum || 1.30,
+                            forecasted: debtData?.projected_coverage || 1.57
                         },
-                        { 
-                            year: '2025 (pro)', 
-                            actual: null, 
-                            required: debtData?.required_minimum || 1.30, 
-                            forecasted: (debtData?.projected_coverage || 1.57) * 1.07 
+                        {
+                            year: '2025 (pro)',
+                            actual: null,
+                            required: debtData?.required_minimum || 1.30,
+                            forecasted: (debtData?.projected_coverage || 1.57) * 1.07
                         }
                     ];
                     setDebtData(dscrData);
@@ -742,7 +742,7 @@ const FinancialHealth = () => {
         e.preventDefault();
         e.stopPropagation();
         console.log('Form submitted!', { aiQuestion, trimmed: aiQuestion.trim() });
-        
+
         const trimmed = aiQuestion.trim();
         if (trimmed) {
             console.log('Calling fetchAIResponse with:', trimmed);
@@ -808,7 +808,7 @@ const FinancialHealth = () => {
         actual: dept.actual || 0,
         budget: dept.budget || 0,
         flag: Math.abs(dept.variance_pct || 0) > 0.2, // Flag if variance > 20%
-        flagText: Math.abs(dept.variance_pct || 0) > 0.2 
+        flagText: Math.abs(dept.variance_pct || 0) > 0.2
             ? (dept.variance_pct > 0 ? 'AI Flag - variance exceeds historical range' : 'AI Flag - sustained overspend detected')
             : ''
     })) : [
@@ -825,7 +825,7 @@ const FinancialHealth = () => {
         // Match API bucket format: "current", "30_days", "60_days"
         let bucketLabel = 'Current';
         let color = '#16A34A';
-        
+
         if (bucket === 'current') {
             bucketLabel = 'Current';
             color = '#16A34A';
@@ -836,7 +836,7 @@ const FinancialHealth = () => {
             bucketLabel = '60+ Days';
             color = '#DC2626';
         }
-        
+
         return {
             label: `${bucketLabel} (${formatCurrency((item.amount || 0) * 10)})`,
             percent: Math.round((item.percentage || 0) * 100),
@@ -1235,10 +1235,10 @@ const FinancialHealth = () => {
                                 so we only render this block when there is no history yet. */}
                             {aiResponse.isConversational && aiChatHistory.length === 0 && (
                                 <div>
-                                    <h3 style={{ 
-                                        fontSize: '16px', 
-                                        fontWeight: '700', 
-                                        color: '#1B5B7E', 
+                                    <h3 style={{
+                                        fontSize: '16px',
+                                        fontWeight: '700',
+                                        color: '#1B5B7E',
                                         marginBottom: '15px',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -1247,8 +1247,8 @@ const FinancialHealth = () => {
                                         <Lightbulb size={18} color="#1B5B7E" />
                                         AI Response
                                     </h3>
-                                    <div style={{ 
-                                        whiteSpace: 'pre-wrap', 
+                                    <div style={{
+                                        whiteSpace: 'pre-wrap',
                                         lineHeight: '1.6',
                                         marginBottom: '15px',
                                         padding: '18px',
@@ -1261,9 +1261,9 @@ const FinancialHealth = () => {
                                     }}>
                                         {aiResponse.sql || aiResponse.summary || aiResponse.error}
                                     </div>
-                                    <div style={{ 
-                                        fontSize: '12px', 
-                                        color: '#6B7280', 
+                                    <div style={{
+                                        fontSize: '12px',
+                                        color: '#6B7280',
                                         padding: '12px',
                                         background: '#F9FAFB',
                                         borderRadius: '6px',
@@ -1274,12 +1274,12 @@ const FinancialHealth = () => {
                                     </div>
                                 </div>
                             )}
-                            
+
                             {/* Response with error but has SQL */}
                             {aiResponse.hasError && !aiResponse.isConversational && (
                                 <div>
                                     <h3>Query Generated:</h3>
-                                    <div style={{ 
+                                    <div style={{
                                         padding: '10px',
                                         background: '#FEF3C7',
                                         borderRadius: '5px',
@@ -1293,9 +1293,9 @@ const FinancialHealth = () => {
                                             <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
                                                 <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Generated SQL Query
                                             </summary>
-                                            <pre style={{ 
-                                                background: '#f5f5f5', 
-                                                padding: '10px', 
+                                            <pre style={{
+                                                background: '#f5f5f5',
+                                                padding: '10px',
                                                 borderRadius: '5px',
                                                 fontSize: '11px',
                                                 marginTop: '5px',
@@ -1307,20 +1307,20 @@ const FinancialHealth = () => {
                                     )}
                                 </div>
                             )}
-                            
+
                             {/* Successful SQL response with summary */}
                             {aiResponse.summary && !aiResponse.isConversational && !aiResponse.hasError && (() => {
                                 const parsedSummary = parseSummary(aiResponse.summary);
-                                const tableData = aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 
-                                    ? formatTableData(aiResponse.data) 
+                                const tableData = aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0
+                                    ? formatTableData(aiResponse.data)
                                     : null;
-                                
+
                                 return (
                                     <div>
-                                        <h3 style={{ 
-                                            fontSize: '16px', 
-                                            fontWeight: '700', 
-                                            color: '#1B5B7E', 
+                                        <h3 style={{
+                                            fontSize: '16px',
+                                            fontWeight: '700',
+                                            color: '#1B5B7E',
                                             marginBottom: '20px',
                                             display: 'flex',
                                             alignItems: 'center',
@@ -1334,22 +1334,22 @@ const FinancialHealth = () => {
                                             Keep this block for the very first interaction only so content
                                             isn't duplicated. */}
                                         {parsedSummary.question && aiChatHistory.length === 0 && (
-                                            <div style={{ 
+                                            <div style={{
                                                 background: '#F0F9FF',
                                                 border: '1px solid #BAE6FD',
                                                 borderRadius: '8px',
                                                 padding: '15px',
                                                 marginBottom: '20px'
                                             }}>
-                                                <h4 style={{ 
-                                                    fontSize: '14px', 
-                                                    fontWeight: '600', 
+                                                <h4 style={{
+                                                    fontSize: '14px',
+                                                    fontWeight: '600',
                                                     color: '#1B5B7E',
                                                     marginBottom: '10px'
                                                 }}>
                                                     Based on the Question
                                                 </h4>
-                                                <p style={{ 
+                                                <p style={{
                                                     color: '#374151',
                                                     fontSize: '14px',
                                                     margin: 0,
@@ -1367,10 +1367,10 @@ const FinancialHealth = () => {
                                                     <Search size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
                                                     Generated SQL Query
                                                 </summary>
-                                                <pre style={{ 
-                                                    background: '#1F2937', 
+                                                <pre style={{
+                                                    background: '#1F2937',
                                                     color: '#F9FAFB',
-                                                    padding: '15px', 
+                                                    padding: '15px',
                                                     borderRadius: '8px',
                                                     fontSize: '13px',
                                                     overflow: 'auto',
@@ -1387,7 +1387,7 @@ const FinancialHealth = () => {
 
                                         {/* AI Insight narrative (above query results) */}
                                         {parsedSummary.other.length > 0 && (
-                                            <div style={{ 
+                                            <div style={{
                                                 background: '#F0F9FF',
                                                 border: '1px solid #BAE6FD',
                                                 borderRadius: '8px',
@@ -1395,16 +1395,16 @@ const FinancialHealth = () => {
                                                 marginBottom: '20px',
                                                 lineHeight: '1.6'
                                             }}>
-                                                <h4 style={{ 
-                                                    fontSize: '14px', 
-                                                    fontWeight: '600', 
+                                                <h4 style={{
+                                                    fontSize: '14px',
+                                                    fontWeight: '600',
                                                     color: '#1B5B7E',
                                                     marginBottom: '10px'
                                                 }}>
                                                     AI Insight
                                                 </h4>
                                                 {parsedSummary.other.map((line, idx) => (
-                                                    <div key={idx} style={{ 
+                                                    <div key={idx} style={{
                                                         marginBottom: idx < parsedSummary.other.length - 1 ? '10px' : 0,
                                                         color: '#374151',
                                                         fontSize: '13px'
@@ -1418,9 +1418,9 @@ const FinancialHealth = () => {
                                         {/* 3. Query Results Table */}
                                         {tableData && (
                                             <div style={{ marginBottom: '20px' }}>
-                                                <h4 style={{ 
-                                                    fontSize: '14px', 
-                                                    fontWeight: '600', 
+                                                <h4 style={{
+                                                    fontSize: '14px',
+                                                    fontWeight: '600',
                                                     color: '#1B5B7E',
                                                     marginBottom: '12px',
                                                     display: 'flex',
@@ -1430,25 +1430,25 @@ const FinancialHealth = () => {
                                                     <Target size={16} color="#1B5B7E" />
                                                     Query Results ({aiResponse.row_count || aiResponse.data.length} row{aiResponse.data.length !== 1 ? 's' : ''})
                                                 </h4>
-                                                <div style={{ 
+                                                <div style={{
                                                     overflowX: 'auto',
                                                     borderRadius: '8px',
                                                     border: '1px solid #E5E7EB',
                                                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                                                 }}>
-                                                    <table style={{ 
+                                                    <table style={{
                                                         width: '100%',
                                                         borderCollapse: 'collapse',
                                                         background: '#FFFFFF',
                                                         fontSize: '13px'
                                                     }}>
                                                         <thead>
-                                                            <tr style={{ 
+                                                            <tr style={{
                                                                 background: '#F9FAFB',
                                                                 borderBottom: '2px solid #E5E7EB'
                                                             }}>
                                                                 {tableData.columns.map((col, colIdx) => (
-                                                                    <th key={colIdx} style={{ 
+                                                                    <th key={colIdx} style={{
                                                                         padding: '12px 15px',
                                                                         textAlign: 'left',
                                                                         fontWeight: '600',
@@ -1464,26 +1464,26 @@ const FinancialHealth = () => {
                                                         </thead>
                                                         <tbody>
                                                             {tableData.rows.map((row, rowIdx) => (
-                                                                <tr key={rowIdx} style={{ 
+                                                                <tr key={rowIdx} style={{
                                                                     borderBottom: rowIdx < tableData.rows.length - 1 ? '1px solid #F3F4F6' : 'none',
                                                                     transition: 'background-color 0.2s'
                                                                 }}
-                                                                onMouseEnter={(e) => e.currentTarget.style.background = '#F9FAFB'}
-                                                                onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}>
+                                                                    onMouseEnter={(e) => e.currentTarget.style.background = '#F9FAFB'}
+                                                                    onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}>
                                                                     {tableData.columns.map((col, colIdx) => {
                                                                         const value = row[col];
-                                                                        const isCurrency = col.toLowerCase().includes('revenue') || 
-                                                                                          col.toLowerCase().includes('amount') || 
-                                                                                          col.toLowerCase().includes('cost') ||
-                                                                                          col.toLowerCase().includes('expense') ||
-                                                                                          col.toLowerCase().includes('income') ||
-                                                                                          col.toLowerCase().includes('budget');
-                                                                        const formattedValue = isCurrency && typeof value === 'number' 
-                                                                            ? formatCurrency(value * 10) 
+                                                                        const isCurrency = col.toLowerCase().includes('revenue') ||
+                                                                            col.toLowerCase().includes('amount') ||
+                                                                            col.toLowerCase().includes('cost') ||
+                                                                            col.toLowerCase().includes('expense') ||
+                                                                            col.toLowerCase().includes('income') ||
+                                                                            col.toLowerCase().includes('budget');
+                                                                        const formattedValue = isCurrency && typeof value === 'number'
+                                                                            ? formatCurrency(value * 10)
                                                                             : formatNumber(value);
-                                                                        
+
                                                                         return (
-                                                                            <td key={colIdx} style={{ 
+                                                                            <td key={colIdx} style={{
                                                                                 padding: '12px 15px',
                                                                                 color: '#374151',
                                                                                 fontWeight: isCurrency ? '600' : '400'
@@ -1499,10 +1499,10 @@ const FinancialHealth = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        
+
                                         {/* 4. Key Statistics */}
                                         {parsedSummary.keyStats.length > 0 && (
-                                            <div style={{ 
+                                            <div style={{
                                                 background: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
                                                 border: '1px solid #7DD3FC',
                                                 borderRadius: '12px',
@@ -1510,9 +1510,9 @@ const FinancialHealth = () => {
                                                 marginBottom: '20px',
                                                 boxShadow: '0 2px 8px rgba(27, 91, 126, 0.1)'
                                             }}>
-                                                <h4 style={{ 
-                                                    fontSize: '15px', 
-                                                    fontWeight: '700', 
+                                                <h4 style={{
+                                                    fontSize: '15px',
+                                                    fontWeight: '700',
                                                     color: '#1B5B7E',
                                                     marginBottom: '16px',
                                                     display: 'flex',
@@ -1524,7 +1524,7 @@ const FinancialHealth = () => {
                                                     <Target size={18} color="#1B5B7E" />
                                                     Key Statistics
                                                 </h4>
-                                                <div style={{ 
+                                                <div style={{
                                                     display: 'grid',
                                                     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                                                     gap: '12px'
@@ -1532,19 +1532,19 @@ const FinancialHealth = () => {
                                                     {parsedSummary.keyStats.map((stat, idx) => {
                                                         const [key, ...valueParts] = stat.split(':');
                                                         const value = valueParts.join(':').trim();
-                                                        
+
                                                         // Parse value to extract min, max, avg if present
                                                         const minMatch = value.match(/min=([\d.]+)/);
                                                         const maxMatch = value.match(/max=([\d.]+)/);
                                                         const avgMatch = value.match(/avg=([\d.]+)/);
-                                                        
+
                                                         const isNumericValue = /^[\d.]+$/.test(value.trim());
-                                                        const formattedValue = isNumericValue && parseFloat(value) 
+                                                        const formattedValue = isNumericValue && parseFloat(value)
                                                             ? formatNumber(parseFloat(value))
                                                             : value;
-                                                        
+
                                                         return (
-                                                            <div key={idx} style={{ 
+                                                            <div key={idx} style={{
                                                                 background: '#FFFFFF',
                                                                 border: '1px solid #BAE6FD',
                                                                 borderRadius: '8px',
@@ -1555,17 +1555,17 @@ const FinancialHealth = () => {
                                                                 transition: 'all 0.2s',
                                                                 boxShadow: '0 1px 3px rgba(27, 91, 126, 0.08)'
                                                             }}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(27, 91, 126, 0.15)';
-                                                                e.currentTarget.style.borderColor = '#7DD3FC';
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                                e.currentTarget.style.boxShadow = '0 1px 3px rgba(27, 91, 126, 0.08)';
-                                                                e.currentTarget.style.borderColor = '#BAE6FD';
-                                                            }}>
-                                                                <div style={{ 
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(27, 91, 126, 0.15)';
+                                                                    e.currentTarget.style.borderColor = '#7DD3FC';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(27, 91, 126, 0.08)';
+                                                                    e.currentTarget.style.borderColor = '#BAE6FD';
+                                                                }}>
+                                                                <div style={{
                                                                     fontSize: '11px',
                                                                     fontWeight: '600',
                                                                     color: '#689EC2',
@@ -1597,7 +1597,7 @@ const FinancialHealth = () => {
                                                                         )}
                                                                     </div>
                                                                 ) : (
-                                                                    <div style={{ 
+                                                                    <div style={{
                                                                         fontSize: '16px',
                                                                         fontWeight: '700',
                                                                         color: '#1B5B7E',
@@ -1612,25 +1612,25 @@ const FinancialHealth = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        
+
                                         {/* 5. Data Section */}
                                         {parsedSummary.data.length > 0 && (
-                                            <div style={{ 
+                                            <div style={{
                                                 background: '#F9FAFB',
                                                 border: '1px solid #E5E7EB',
                                                 borderRadius: '8px',
                                                 padding: '15px',
                                                 marginBottom: '20px'
                                             }}>
-                                                <h4 style={{ 
-                                                    fontSize: '14px', 
-                                                    fontWeight: '600', 
+                                                <h4 style={{
+                                                    fontSize: '14px',
+                                                    fontWeight: '600',
                                                     color: '#1B5B7E',
                                                     marginBottom: '12px'
                                                 }}>
                                                     Data
                                                 </h4>
-                                                <div style={{ 
+                                                <div style={{
                                                     fontFamily: 'Monaco, "Courier New", monospace',
                                                     fontSize: '12px',
                                                     color: '#374151',
@@ -1642,23 +1642,23 @@ const FinancialHealth = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        
+
                                     </div>
                                 );
                             })()}
                             {/* (removed duplicate "Conversation history" block to avoid showing chat twice) */}
-                            
+
                             {/* Response with data but no summary */}
                             {!aiResponse.summary && !aiResponse.isConversational && aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 && (() => {
                                 const tableData = formatTableData(aiResponse.data);
                                 if (!tableData) return null;
-                                
+
                                 return (
                                     <div>
-                                        <h3 style={{ 
-                                            fontSize: '16px', 
-                                            fontWeight: '700', 
-                                            color: '#1B5B7E', 
+                                        <h3 style={{
+                                            fontSize: '16px',
+                                            fontWeight: '700',
+                                            color: '#1B5B7E',
                                             marginBottom: '8px',
                                             display: 'flex',
                                             alignItems: 'center',
@@ -1667,33 +1667,33 @@ const FinancialHealth = () => {
                                             <Target size={18} color="#1B5B7E" />
                                             Query Results
                                         </h3>
-                                        <p style={{ 
-                                            color: '#6B7280', 
+                                        <p style={{
+                                            color: '#6B7280',
                                             fontSize: '13px',
                                             marginBottom: '15px'
                                         }}>
                                             Found {aiResponse.row_count || aiResponse.data.length} result{aiResponse.data.length !== 1 ? 's' : ''}
                                         </p>
-                                        <div style={{ 
+                                        <div style={{
                                             overflowX: 'auto',
                                             borderRadius: '8px',
                                             border: '1px solid #E5E7EB',
                                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                                             marginBottom: '15px'
                                         }}>
-                                            <table style={{ 
+                                            <table style={{
                                                 width: '100%',
                                                 borderCollapse: 'collapse',
                                                 background: '#FFFFFF',
                                                 fontSize: '13px'
                                             }}>
                                                 <thead>
-                                                    <tr style={{ 
+                                                    <tr style={{
                                                         background: '#F9FAFB',
                                                         borderBottom: '2px solid #E5E7EB'
                                                     }}>
                                                         {tableData.columns.map((col, colIdx) => (
-                                                            <th key={colIdx} style={{ 
+                                                            <th key={colIdx} style={{
                                                                 padding: '12px 15px',
                                                                 textAlign: 'left',
                                                                 fontWeight: '600',
@@ -1709,25 +1709,25 @@ const FinancialHealth = () => {
                                                 </thead>
                                                 <tbody>
                                                     {tableData.rows.map((row, rowIdx) => (
-                                                        <tr key={rowIdx} style={{ 
+                                                        <tr key={rowIdx} style={{
                                                             borderBottom: rowIdx < tableData.rows.length - 1 ? '1px solid #F3F4F6' : 'none'
                                                         }}
-                                                        onMouseEnter={(e) => e.currentTarget.style.background = '#F9FAFB'}
-                                                        onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}>
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#F9FAFB'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}>
                                                             {tableData.columns.map((col, colIdx) => {
                                                                 const value = row[col];
-                                                                const isCurrency = col.toLowerCase().includes('revenue') || 
-                                                                                  col.toLowerCase().includes('amount') || 
-                                                                                  col.toLowerCase().includes('cost') ||
-                                                                                  col.toLowerCase().includes('expense') ||
-                                                                                  col.toLowerCase().includes('income') ||
-                                                                                  col.toLowerCase().includes('budget');
-                                                                const formattedValue = isCurrency && typeof value === 'number' 
-                                                                    ? formatCurrency(value * 10) 
+                                                                const isCurrency = col.toLowerCase().includes('revenue') ||
+                                                                    col.toLowerCase().includes('amount') ||
+                                                                    col.toLowerCase().includes('cost') ||
+                                                                    col.toLowerCase().includes('expense') ||
+                                                                    col.toLowerCase().includes('income') ||
+                                                                    col.toLowerCase().includes('budget');
+                                                                const formattedValue = isCurrency && typeof value === 'number'
+                                                                    ? formatCurrency(value * 10)
                                                                     : formatNumber(value);
-                                                                
+
                                                                 return (
-                                                                    <td key={colIdx} style={{ 
+                                                                    <td key={colIdx} style={{
                                                                         padding: '12px 15px',
                                                                         color: '#374151',
                                                                         fontWeight: isCurrency ? '600' : '400'
@@ -1743,9 +1743,9 @@ const FinancialHealth = () => {
                                         </div>
                                         {aiResponse.sql && (aiResponse.type === 'sql' || aiResponse.type === undefined) && (
                                             <details style={{ marginTop: '10px' }}>
-                                                <summary style={{ 
-                                                    cursor: 'pointer', 
-                                                    color: '#689EC2', 
+                                                <summary style={{
+                                                    cursor: 'pointer',
+                                                    color: '#689EC2',
                                                     fontWeight: '600',
                                                     fontSize: '13px',
                                                     padding: '8px 12px',
@@ -1756,21 +1756,21 @@ const FinancialHealth = () => {
                                                     alignItems: 'center',
                                                     gap: '8px'
                                                 }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = '#F3F4F6';
-                                                    e.currentTarget.style.borderColor = '#689EC2';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = '#F9FAFB';
-                                                    e.currentTarget.style.borderColor = '#E5E7EB';
-                                                }}>
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.background = '#F3F4F6';
+                                                        e.currentTarget.style.borderColor = '#689EC2';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.background = '#F9FAFB';
+                                                        e.currentTarget.style.borderColor = '#E5E7EB';
+                                                    }}>
                                                     <Search size={14} />
                                                     View SQL Query
                                                 </summary>
-                                                <pre style={{ 
-                                                    background: '#1F2937', 
+                                                <pre style={{
+                                                    background: '#1F2937',
                                                     color: '#F9FAFB',
-                                                    padding: '15px', 
+                                                    padding: '15px',
                                                     borderRadius: '6px',
                                                     fontSize: '12px',
                                                     marginTop: '8px',
@@ -1786,7 +1786,7 @@ const FinancialHealth = () => {
                                     </div>
                                 );
                             })()}
-                            
+
                             {/* No data found */}
                             {!aiResponse.summary && !aiResponse.isConversational && !aiResponse.hasError && (!aiResponse.data || (Array.isArray(aiResponse.data) && aiResponse.data.length === 0)) && (
                                 <div>
@@ -1797,9 +1797,9 @@ const FinancialHealth = () => {
                                             <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
                                                 <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> View SQL Query
                                             </summary>
-                                            <pre style={{ 
-                                                background: '#f5f5f5', 
-                                                padding: '10px', 
+                                            <pre style={{
+                                                background: '#f5f5f5',
+                                                padding: '10px',
                                                 borderRadius: '5px',
                                                 fontSize: '11px',
                                                 marginTop: '5px'
@@ -1817,9 +1817,9 @@ const FinancialHealth = () => {
                         <div>
                             <h3>1. Revenue Performance Overview:</h3>
                             <p>
-                                Actual Revenue: <strong>{formatCurrency((revenueSummary?.total_revenue || kpis?.total_revenue || 26.5) * 10)}</strong>, 
-                                Budgeted Revenue: <strong>{formatCurrency((revenueSummary?.budgeted_revenue || kpis?.budgeted_revenue || 22.4) * 10)}</strong>, 
-                                Revenue Variance: <strong>{revenueSummary?.variance_pct ? (revenueSummary.variance_pct > 0 ? '+' : '') + (revenueSummary.variance_pct * 100).toFixed(1) + '%' : '+18.4%'}</strong> 
+                                Actual Revenue: <strong>{formatCurrency((revenueSummary?.total_revenue || kpis?.total_revenue || 26.5) * 10)}</strong>,
+                                Budgeted Revenue: <strong>{formatCurrency((revenueSummary?.budgeted_revenue || kpis?.budgeted_revenue || 22.4) * 10)}</strong>,
+                                Revenue Variance: <strong>{revenueSummary?.variance_pct ? (revenueSummary.variance_pct > 0 ? '+' : '') + (revenueSummary.variance_pct * 100).toFixed(1) + '%' : '+18.4%'}</strong>
                                 {revenueSummary?.variance && (
                                     <> ({(revenueSummary.variance > 0 ? 'Positive' : 'Negative')} variance of <strong>{formatCurrency(Math.abs(revenueSummary.variance) * 10)}</strong>)</>
                                 )}
@@ -1848,11 +1848,11 @@ const FinancialHealth = () => {
                     <span className="fh-title-icon">
                         <svg width="34" height="40" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                             {/* Three vertical bars increasing in height */}
-                            <rect x="4" y="28" width="4" height="8" fill="#1B5B7E"/>
-                            <rect x="10" y="24" width="4" height="12" fill="#1B5B7E"/>
-                            <rect x="16" y="18" width="4" height="18" fill="#1B5B7E"/>
+                            <rect x="4" y="28" width="4" height="8" fill="#1B5B7E" />
+                            <rect x="10" y="24" width="4" height="12" fill="#1B5B7E" />
+                            <rect x="16" y="18" width="4" height="18" fill="#1B5B7E" />
                             {/* Coin with dollar sign above the tallest bar */}
-                            <circle cx="18" cy="12" r="6" fill="#1B5B7E"/>
+                            <circle cx="18" cy="12" r="6" fill="#1B5B7E" />
                             <text x="18" y="16" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontFamily="Arial, sans-serif" fontWeight="bold">$</text>
                         </svg>
                     </span>
@@ -1883,16 +1883,16 @@ const FinancialHealth = () => {
                     </div>
                     <ResponsiveContainer width="100%" height={200}>
                         <LineChart data={
-                            (revenueTrends.length > 0 && revenueTrends.every(item => 
+                            (revenueTrends.length > 0 && revenueTrends.every(item =>
                                 item && item.month && typeof item.actual === 'number' && !isNaN(item.actual)
                             )) ? revenueTrends : [
-                            { month: 'Jan', actual: 2.20, projected: 2.45, budget: 2.20 },
-                            { month: 'Feb', actual: 2.23, projected: 2.40, budget: 2.20 },
-                            { month: 'Mar', actual: 2.26, projected: 2.38, budget: 2.20 },
-                            { month: 'Apr', actual: 2.30, projected: 2.42, budget: 2.20 },
-                            { month: 'May', actual: 2.40, projected: 2.48, budget: 2.20 },
-                            { month: 'Jun', actual: 2.58, projected: 2.52, budget: 2.20 },
-                        ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                { month: 'Jan', actual: 2.20, projected: 2.45, budget: 2.20 },
+                                { month: 'Feb', actual: 2.23, projected: 2.40, budget: 2.20 },
+                                { month: 'Mar', actual: 2.26, projected: 2.38, budget: 2.20 },
+                                { month: 'Apr', actual: 2.30, projected: 2.42, budget: 2.20 },
+                                { month: 'May', actual: 2.40, projected: 2.48, budget: 2.20 },
+                                { month: 'Jun', actual: 2.58, projected: 2.52, budget: 2.20 },
+                            ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                             <XAxis dataKey="month" fontSize={11} stroke="#6B7280" />
                             <YAxis fontSize={11} stroke="#6B7280" />
@@ -1933,9 +1933,9 @@ const FinancialHealth = () => {
                                 margin={{ top: 10, right: 20, left: 60, bottom: 20 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
-                                <XAxis 
-                                    type="number" 
-                                    domain={[0, 1250]} 
+                                <XAxis
+                                    type="number"
+                                    domain={[0, 1250]}
                                     ticks={[0, 250, 500, 750, 1000, 1250]}
                                     tickFormatter={(value) => {
                                         if (value === 0) return '0';
@@ -1945,16 +1945,16 @@ const FinancialHealth = () => {
                                         if (value === 1000) return '1000k';
                                         if (value === 1250) return '1250k';
                                         return '';
-                                    }} 
-                                    fontSize={10.6179} 
+                                    }}
+                                    fontSize={10.6179}
                                     stroke="#6B7280"
                                     tick={{ fill: '#6B7280' }}
                                 />
-                                <YAxis 
-                                    dataKey="category" 
-                                    type="category" 
-                                    fontSize={8.78802} 
-                                    stroke="#6B7280" 
+                                <YAxis
+                                    dataKey="category"
+                                    type="category"
+                                    fontSize={8.78802}
+                                    stroke="#6B7280"
                                     width={60}
                                     tick={{ fill: '#6B7280' }}
                                 />
@@ -2043,10 +2043,10 @@ const FinancialHealth = () => {
                     </div>
 
                     <div className="fh-scenario-input">
-                        <input 
-                            type="text" 
-                            className="fh-scenario-name-input" 
-                            placeholder="Scenario Name" 
+                        <input
+                            type="text"
+                            className="fh-scenario-name-input"
+                            placeholder="Scenario Name"
                             value={scenarioName}
                             onChange={(e) => setScenarioName(e.target.value)}
                         />
@@ -2093,7 +2093,7 @@ const FinancialHealth = () => {
                         {(() => {
                             const impact = calculateScenarioImpact();
                             const insights = [];
-                            
+
                             if (impact.projectedNetIncome > 0) {
                                 insights.push(
                                     <div key="net-income" className="fh-insight-item">
@@ -2109,7 +2109,7 @@ const FinancialHealth = () => {
                                     </div>
                                 );
                             }
-                            
+
                             if (impact.debtServiceCoverage > 1.25) {
                                 insights.push(
                                     <div key="debt-coverage" className="fh-insight-item">
@@ -2125,7 +2125,7 @@ const FinancialHealth = () => {
                                     </div>
                                 );
                             }
-                            
+
                             if (rateIncrease > 0 && calculateRateIncreaseImpact() > 0) {
                                 insights.push(
                                     <div key="rate-increase" className="fh-insight-item blue">
@@ -2133,7 +2133,7 @@ const FinancialHealth = () => {
                                     </div>
                                 );
                             }
-                            
+
                             if (waterLoss > 0 && calculateWaterLossImpact() > 0) {
                                 insights.push(
                                     <div key="water-loss" className="fh-insight-item blue">
@@ -2141,7 +2141,7 @@ const FinancialHealth = () => {
                                     </div>
                                 );
                             }
-                            
+
                             return insights.length > 0 ? insights : [
                                 <div key="no-insights" className="fh-insight-item">
                                     <span>Adjust scenario parameters to see insights</span>
@@ -2217,17 +2217,17 @@ const FinancialHealth = () => {
                     <span className="fh-title-icon">
                         <svg width="34" height="40" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                             {/* Cloud-like/blob shape on the left */}
-                            <path d="M8 20C8 16 10 12 14 12C14 10 16 8 18 8C20 8 22 10 22 12C24 12 26 14 26 16C26 18 24 20 22 20L14 20C12 20 10 18 10 16C10 14 8 16 8 20Z" fill="#1B5B7E"/>
+                            <path d="M8 20C8 16 10 12 14 12C14 10 16 8 18 8C20 8 22 10 22 12C24 12 26 14 26 16C26 18 24 20 22 20L14 20C12 20 10 18 10 16C10 14 8 16 8 20Z" fill="#1B5B7E" />
                             {/* Three horizontal lines extending to the right with circular nodes */}
                             {/* Top line (angles slightly upwards) */}
-                            <line x1="26" y1="14" x2="30" y2="12" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round"/>
-                            <circle cx="30" cy="12" r="2" fill="#1B5B7E"/>
+                            <line x1="26" y1="14" x2="30" y2="12" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round" />
+                            <circle cx="30" cy="12" r="2" fill="#1B5B7E" />
                             {/* Middle line (horizontal) */}
-                            <line x1="26" y1="20" x2="30" y2="20" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round"/>
-                            <circle cx="30" cy="20" r="2" fill="#1B5B7E"/>
+                            <line x1="26" y1="20" x2="30" y2="20" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round" />
+                            <circle cx="30" cy="20" r="2" fill="#1B5B7E" />
                             {/* Bottom line (angles slightly downwards) */}
-                            <line x1="26" y1="26" x2="30" y2="28" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round"/>
-                            <circle cx="30" cy="28" r="2" fill="#1B5B7E"/>
+                            <line x1="26" y1="26" x2="30" y2="28" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round" />
+                            <circle cx="30" cy="28" r="2" fill="#1B5B7E" />
                         </svg>
                     </span>
                     Actionable Intelligence for Strategic Decisions
@@ -2261,26 +2261,26 @@ const FinancialHealth = () => {
                     <span className="fh-title-icon">
                         <svg width="34" height="40" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                             {/* Central Coin with Dollar Sign */}
-                            <circle cx="17" cy="20" r="6" fill="#1B5B7E"/>
+                            <circle cx="17" cy="20" r="6" fill="#1B5B7E" />
                             <text x="17" y="24" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontFamily="Arial, sans-serif" fontWeight="bold">$</text>
-                            
+
                             {/* Circular Arrow/Loop - forms complete circle around coin, starts bottom-left */}
-                            <path d="M 11 26.5 A 6 6 0 0 1 11 13.5 A 6 6 0 0 1 23 13.5 A 6 6 0 0 1 25 16" 
-                                  stroke="#1B5B7E" 
-                                  strokeWidth="2.5" 
-                                  fill="none" 
-                                  strokeLinecap="round"/>
-                            
+                            <path d="M 11 26.5 A 6 6 0 0 1 11 13.5 A 6 6 0 0 1 23 13.5 A 6 6 0 0 1 25 16"
+                                stroke="#1B5B7E"
+                                strokeWidth="2.5"
+                                fill="none"
+                                strokeLinecap="round" />
+
                             {/* Arrow head at top-right end of loop */}
-                            <path d="M 25 16 L 22.5 14.5 L 24 17.5 Z" fill="#1B5B7E"/>
-                            
+                            <path d="M 25 16 L 22.5 14.5 L 24 17.5 Z" fill="#1B5B7E" />
+
                             {/* Sprout emerging from top-right of arrow */}
                             {/* Stem */}
-                            <line x1="25" y1="16" x2="25" y2="11" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round"/>
+                            <line x1="25" y1="16" x2="25" y2="11" stroke="#1B5B7E" strokeWidth="2" strokeLinecap="round" />
                             {/* Left leaf - small rounded leaf curving left */}
-                            <path d="M 25 11 Q 23.5 9.5 23 11 Q 23.5 10.5 25 11" fill="#1B5B7E"/>
+                            <path d="M 25 11 Q 23.5 9.5 23 11 Q 23.5 10.5 25 11" fill="#1B5B7E" />
                             {/* Right leaf - small rounded leaf curving right */}
-                            <path d="M 25 11 Q 26.5 9.5 27 11 Q 26.5 10.5 25 11" fill="#1B5B7E"/>
+                            <path d="M 25 11 Q 26.5 9.5 27 11 Q 26.5 10.5 25 11" fill="#1B5B7E" />
                         </svg>
                     </span>
                     Debt Sustainability & Health Outlook
@@ -2369,9 +2369,9 @@ const FinancialHealth = () => {
                     title: alert.alert_type || alert.title || 'Alert',
                     text: alert.description || alert.text || '',
                     confidence: Math.round((alert.confidence_level || 0.85) * 100),
-                    icon: alert.alert_type?.toLowerCase().includes('leakage') || 
-                          alert.alert_type?.toLowerCase().includes('risk') || 
-                          alert.alert_type?.toLowerCase().includes('detected') ? 'alert' : 'check'
+                    icon: alert.alert_type?.toLowerCase().includes('leakage') ||
+                        alert.alert_type?.toLowerCase().includes('risk') ||
+                        alert.alert_type?.toLowerCase().includes('detected') ? 'alert' : 'check'
                 })) : [
                     { title: 'Revenue Optimization Opportunity', text: 'Analysis suggests implementing dynamic pricing during peak demand hours could increase quarterly revenue by 2-3%', confidence: 92, icon: 'check' },
                     { title: 'Q1 Profitability Forecast', text: 'Based on current trajectory, Q1 net income expected to reach $19.8M, 3.6% above budget forecast.', confidence: 85, icon: 'check' },
@@ -2402,7 +2402,7 @@ const FinancialHealth = () => {
             </div>
 
             {/* Progress Bar */}
-           
+
         </div>
     );
 };
