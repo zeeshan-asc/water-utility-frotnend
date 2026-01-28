@@ -12,6 +12,22 @@ import './FinancialHealth.css';
 
 const API_BASE_URL = 'http://localhost:8084';
 
+// Module-level cache to store financial health data (persists across remounts)
+let financialHealthDataCache = {
+    kpis: null,
+    revenueTrends: [],
+    budgetVariance: [],
+    arAging: [],
+    debtData: [],
+    operationalMargins: [],
+    alerts: [],
+    revenueSummary: null,
+    scenarios: [],
+    backendHealth: null,
+    aiHealth: null,
+    loaded: false
+};
+
 // Helper function to format month names
 const formatMonth = (dateStr) => {
     if (!dateStr) return 'Unknown';
@@ -204,7 +220,7 @@ const FinancialHealth = () => {
     const [scenarios, setScenarios] = useState([]);
     
     // AI Chatbot states
-    const [aiQuestion, setAiQuestion] = useState('Provide a summary of the FY24 revenue performance compared to the budget.');
+    const [aiQuestion, setAiQuestion] = useState('');
     const [aiResponse, setAiResponse] = useState(null);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiError, setAiError] = useState(null);
@@ -429,26 +445,72 @@ const FinancialHealth = () => {
 
     // Fetch all data on component mount
     useEffect(() => {
+        // If data has already been loaded and cached, restore it
+        if (financialHealthDataCache.loaded && financialHealthDataCache.kpis !== null) {
+            setKpis(financialHealthDataCache.kpis);
+            setRevenueTrends(financialHealthDataCache.revenueTrends);
+            setBudgetVariance(financialHealthDataCache.budgetVariance);
+            setArAging(financialHealthDataCache.arAging);
+            setDebtData(financialHealthDataCache.debtData);
+            setOperationalMargins(financialHealthDataCache.operationalMargins);
+            setAlerts(financialHealthDataCache.alerts);
+            setRevenueSummary(financialHealthDataCache.revenueSummary);
+            setScenarios(financialHealthDataCache.scenarios);
+            setBackendHealth(financialHealthDataCache.backendHealth);
+            setAiHealth(financialHealthDataCache.aiHealth);
+            setLoading(false);
+            return;
+        }
+
         const fetchAllData = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
                 // Check backend health first
-                const backendOk = await checkBackendHealth();
-                if (!backendOk) {
+                let backendHealthStatus = 'unreachable';
+                try {
+                    const backendResponse = await fetch(`${API_BASE_URL}/health`);
+                    const backendData = await backendResponse.json();
+                    backendHealthStatus = backendData.status === 'healthy' ? 'healthy' : 'unhealthy';
+                    setBackendHealth(backendHealthStatus);
+                    financialHealthDataCache.backendHealth = backendHealthStatus;
+                } catch (err) {
+                    console.warn('Backend health check failed:', err);
+                    backendHealthStatus = 'unreachable';
+                    setBackendHealth(backendHealthStatus);
+                    financialHealthDataCache.backendHealth = backendHealthStatus;
+                }
+                
+                if (backendHealthStatus !== 'healthy') {
                     setError('Backend API is not reachable. Please ensure the server is running at ' + API_BASE_URL);
                     setLoading(false);
                     return;
                 }
 
                 // Check AI health
-                await checkAIHealth();
+                let aiHealthStatus = 'unreachable';
+                try {
+                    const aiResponse = await fetch(`${API_BASE_URL}/api/v0/ai/health`);
+                    if (aiResponse.ok) {
+                        const aiJson = await aiResponse.json();
+                        const status = aiJson.status || (aiJson.success && aiJson.data?.status) || 'unhealthy';
+                        aiHealthStatus = status === 'healthy' ? 'healthy' : 'unhealthy';
+                    }
+                    setAiHealth(aiHealthStatus);
+                    financialHealthDataCache.aiHealth = aiHealthStatus;
+                } catch (err) {
+                    console.warn('AI health check failed:', err);
+                    aiHealthStatus = 'unreachable';
+                    setAiHealth(aiHealthStatus);
+                    financialHealthDataCache.aiHealth = aiHealthStatus;
+                }
 
                 // Fetch KPIs
                 const kpisResponse = await fetch(`${API_BASE_URL}/api/v0/dashboard/kpis`);
                 const kpisData = await handleApiResponse(kpisResponse);
                 setKpis(kpisData);
+                financialHealthDataCache.kpis = kpisData;
 
                 // Fetch Revenue Trends (last 6 months)
                 try {
@@ -478,44 +540,57 @@ const FinancialHealth = () => {
                         if (formattedRevenue.length > 0) {
                             console.log('Formatted revenue trends:', formattedRevenue);
                             setRevenueTrends(formattedRevenue);
+                            financialHealthDataCache.revenueTrends = formattedRevenue;
                         } else {
                             console.warn('No valid revenue data after formatting, using fallback');
                             setRevenueTrends([]); // Will trigger fallback in chart
+                            financialHealthDataCache.revenueTrends = [];
                         }
                     } else {
                         console.warn('Revenue trends API returned empty or invalid data, using fallback');
                         setRevenueTrends([]); // Will trigger fallback in chart
+                        financialHealthDataCache.revenueTrends = [];
                     }
                 } catch (err) {
                     console.error('Failed to fetch revenue trends:', err);
                     setRevenueTrends([]); // Will trigger fallback in chart
+                    financialHealthDataCache.revenueTrends = [];
                 }
 
                 // Fetch Budget Variance
                 try {
                     const budgetResponse = await fetch(`${API_BASE_URL}/api/v0/dashboard/budget-variance`);
                     const budgetData = await handleApiResponse(budgetResponse);
-                    setBudgetVariance(budgetData || []);
+                    const budgetVarianceData = budgetData || [];
+                    setBudgetVariance(budgetVarianceData);
+                    financialHealthDataCache.budgetVariance = budgetVarianceData;
                 } catch (err) {
                     console.warn('Failed to fetch budget variance:', err);
+                    financialHealthDataCache.budgetVariance = [];
                 }
 
                 // Fetch AR Aging
                 try {
                     const arResponse = await fetch(`${API_BASE_URL}/api/v0/dashboard/ar-aging`);
                     const arData = await handleApiResponse(arResponse);
-                    setArAging(arData?.aging_breakdown || []);
+                    const arAgingData = arData?.aging_breakdown || [];
+                    setArAging(arAgingData);
+                    financialHealthDataCache.arAging = arAgingData;
                 } catch (err) {
                     console.warn('Failed to fetch AR aging:', err);
+                    financialHealthDataCache.arAging = [];
                 }
 
                 // Fetch Scenarios
                 try {
                     const scenariosResponse = await fetch(`${API_BASE_URL}/api/v0/dashboard/scenarios`);
                     const scenariosData = await handleApiResponse(scenariosResponse);
-                    setScenarios(Array.isArray(scenariosData) ? scenariosData : []);
+                    const scenariosArray = Array.isArray(scenariosData) ? scenariosData : [];
+                    setScenarios(scenariosArray);
+                    financialHealthDataCache.scenarios = scenariosArray;
                 } catch (err) {
                     console.warn('Failed to fetch scenarios:', err);
+                    financialHealthDataCache.scenarios = [];
                 }
 
                 // Fetch Debt Data
@@ -544,17 +619,22 @@ const FinancialHealth = () => {
                         }
                     ];
                     setDebtData(dscrData);
+                    financialHealthDataCache.debtData = dscrData;
                 } catch (err) {
                     console.warn('Failed to fetch debt data:', err);
+                    financialHealthDataCache.debtData = [];
                 }
 
                 // Fetch Alerts
                 try {
                     const alertsResponse = await fetch(`${API_BASE_URL}/api/v0/dashboard/alerts?limit=4`);
                     const alertsData = await handleApiResponse(alertsResponse);
-                    setAlerts(Array.isArray(alertsData) ? alertsData : []);
+                    const alertsArray = Array.isArray(alertsData) ? alertsData : [];
+                    setAlerts(alertsArray);
+                    financialHealthDataCache.alerts = alertsArray;
                 } catch (err) {
                     console.warn('Failed to fetch alerts:', err);
+                    financialHealthDataCache.alerts = [];
                 }
 
                 // Fetch Revenue Summary
@@ -562,12 +642,17 @@ const FinancialHealth = () => {
                     const summaryResponse = await fetch(`${API_BASE_URL}/api/v0/dashboard/revenue/summary`);
                     const summaryData = await handleApiResponse(summaryResponse);
                     setRevenueSummary(summaryData);
+                    financialHealthDataCache.revenueSummary = summaryData;
                 } catch (err) {
                     console.warn('Failed to fetch revenue summary:', err);
+                    financialHealthDataCache.revenueSummary = null;
                 }
 
                 // Don't fetch initial AI response automatically - let user submit first
                 // fetchAIResponse(aiQuestion);
+
+                // Mark data as loaded after successful fetch
+                financialHealthDataCache.loaded = true;
 
             } catch (err) {
                 console.error('Error fetching data:', err);
@@ -644,9 +729,56 @@ const FinancialHealth = () => {
     if (loading) {
         return (
             <div className="financial-health-container">
-                <div style={{ textAlign: 'center', padding: '50px' }}>
-                    <h2>Loading financial data...</h2>
+                {/* Header Skeleton */}
+                <div className="skeleton-header">
+                    <div>
+                        <div className="skeleton skeleton-title"></div>
+                        <div className="skeleton skeleton-subtitle" style={{ marginTop: '8px' }}></div>
+                    </div>
+                    <div className="skeleton-health-indicators">
+                        <div className="skeleton skeleton-health-badge"></div>
+                        <div className="skeleton skeleton-health-badge"></div>
+                    </div>
                 </div>
+
+                {/* Tab Navigation Skeleton */}
+                <div className="skeleton skeleton-tabs"></div>
+
+                {/* KPI Cards - Row 1 Skeleton */}
+                <div className="skeleton-kpi-grid-row1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="skeleton-kpi-card">
+                            <div className="skeleton skeleton-kpi-label"></div>
+                            <div className="skeleton skeleton-kpi-value"></div>
+                            <div className="skeleton skeleton-kpi-change"></div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* KPI Cards - Row 2 Skeleton */}
+                <div className="skeleton-kpi-grid-row2">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="skeleton-kpi-card">
+                            <div className="skeleton skeleton-kpi-label"></div>
+                            <div className="skeleton skeleton-kpi-value"></div>
+                            <div className="skeleton skeleton-kpi-change"></div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* AI Query Section Skeleton */}
+                <div className="skeleton-ai-section">
+                    <div className="skeleton-search-bar">
+                        <div className="skeleton skeleton-search-icon"></div>
+                        <div className="skeleton skeleton-search-input"></div>
+                        <div className="skeleton skeleton-search-button"></div>
+                    </div>
+                    <div className="skeleton skeleton-response-box"></div>
+                </div>
+
+                {/* Charts Skeleton */}
+                <div className="skeleton skeleton-chart"></div>
+                <div className="skeleton skeleton-chart"></div>
             </div>
         );
     }
@@ -672,7 +804,6 @@ const FinancialHealth = () => {
                         <h1 className="fh-brand-title">AquaSentinel™</h1>
                         <p className="fh-brand-subtitle">CFO Command Intelligence for Financial, Operational, Billing & Compliance Oversight</p>
                     </div>
-<<<<<<< Updated upstream
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         {backendHealth && (
                             <div style={{ 
@@ -705,8 +836,6 @@ const FinancialHealth = () => {
                             </div>
                         )}
                     </div>
-=======
->>>>>>> Stashed changes
                 </div>
             </div>
 
@@ -962,22 +1091,6 @@ const FinancialHealth = () => {
                                                     {aiResponse.sql}
                                                 </pre>
                                             </div>
-<<<<<<< Updated upstream
-                                        </div>
-                                    )}
-                                    {aiResponse.sql && aiResponse.type === 'sql' && (
-                                        <details style={{ marginTop: '10px' }}>
-                                            <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> View Generated SQL Query
-                                            </summary>
-                                            <pre style={{ 
-                                                background: '#f5f5f5', 
-                                                padding: '10px', 
-                                                borderRadius: '5px',
-                                                fontSize: '11px',
-                                                marginTop: '5px',
-                                                overflow: 'auto'
-=======
                                         )}
                                         
                                         {/* 2. Based on the Question */}
@@ -988,7 +1101,6 @@ const FinancialHealth = () => {
                                                 borderRadius: '8px',
                                                 padding: '15px',
                                                 marginBottom: '20px'
->>>>>>> Stashed changes
                                             }}>
                                                 <h4 style={{ 
                                                     fontSize: '14px', 
@@ -1263,36 +1375,6 @@ const FinancialHealth = () => {
                             })()}
                             
                             {/* Response with data but no summary */}
-<<<<<<< Updated upstream
-                            {!aiResponse.summary && !aiResponse.isConversational && aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 && (
-                                <div>
-                                    <h3>Query Results:</h3>
-                                    <p>Found {aiResponse.row_count || aiResponse.data.length} result(s)</p>
-                                    <div style={{ 
-                                        background: '#f5f5f5', 
-                                        padding: '10px', 
-                                        borderRadius: '5px',
-                                        fontSize: '12px',
-                                        overflow: 'auto',
-                                        maxHeight: '300px',
-                                        marginTop: '10px'
-                                    }}>
-                                        <pre style={{ margin: 0 }}>
-                                            {JSON.stringify(aiResponse.data, null, 2)}
-                                        </pre>
-                                    </div>
-                                    {aiResponse.sql && (
-                                        <details style={{ marginTop: '10px' }}>
-                                            <summary style={{ cursor: 'pointer', color: '#689EC2', fontWeight: '600' }}>
-                                                <Search size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> View SQL Query
-                                            </summary>
-                                            <pre style={{ 
-                                                background: '#f5f5f5', 
-                                                padding: '10px', 
-                                                borderRadius: '5px',
-                                                fontSize: '11px',
-                                                marginTop: '5px'
-=======
                             {!aiResponse.summary && !aiResponse.isConversational && aiResponse.data && Array.isArray(aiResponse.data) && aiResponse.data.length > 0 && (() => {
                                 const tableData = formatTableData(aiResponse.data);
                                 if (!tableData) return null;
@@ -1330,7 +1412,6 @@ const FinancialHealth = () => {
                                                 borderCollapse: 'collapse',
                                                 background: '#FFFFFF',
                                                 fontSize: '13px'
->>>>>>> Stashed changes
                                             }}>
                                                 <thead>
                                                     <tr style={{ 
@@ -2043,9 +2124,7 @@ const FinancialHealth = () => {
             </div>
 
             {/* Progress Bar */}
-            <div className="fh-progress-indicator">
-                <div className="fh-progress-bar"></div>
-            </div>
+           
         </div>
     );
 };

@@ -2,10 +2,7 @@
 
 .billing-insights-container {
     position: relative;
-    max-width: 1440px;
-    width: 100%;
     width: 90%;
-
     min-height: 2375px;
     background: linear-gradient(180deg, #F4F8FE 0%, #FFFFFF 100%);
     padding: 29px 50px;
@@ -1269,4 +1266,3 @@
         font-weight: 600;
     }
 }
-
