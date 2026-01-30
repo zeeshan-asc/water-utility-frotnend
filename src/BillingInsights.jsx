@@ -66,7 +66,7 @@ const riskScoringData = [
 const billabilityData = [
     { id: 'WO-1234', service: 'Leak Detection', prediction: 'Billable', confidence: 94, reason: 'Utility-owned line, labor + threshold' },
     { id: 'WO-1554', service: 'Meter Installation', prediction: 'Billable', confidence: 88, reason: 'New home install under builder contract' },
-    { id: 'WO-1294', service: 'Valve Replacement', prediction: 'Non- Billable', confidence: 78, reason: 'Historical pattern of billed replacements' },
+    { id: 'WO-1294', service: 'Valve Replacement', prediction: 'Non-Billable', confidence: 78, reason: 'Historical pattern of billed replacements' },
     { id: 'WO-2234', service: 'Pressure Test', prediction: 'Billable', confidence: 90, reason: 'Customer-requested test, no fraud found' }
 ];
 
@@ -106,7 +106,7 @@ const BillingInsights = () => {
                     <div className="bi-kpi-value">{kpiData.collectionRate}%</div>
                     <div className="bi-kpi-change positive">
                         <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-                            <path d="M4.25 10.625L8.5 6.375L12.75 10.625" stroke="#16A34A" strokeWidth="1.5"/>
+                            <path d="M4.25 10.625L8.5 6.375L12.75 10.625" stroke="#16A34A" strokeWidth="1.5" />
                         </svg>
                         +{kpiData.improvement}% improvement
                     </div>
@@ -130,17 +130,25 @@ const BillingInsights = () => {
                 <div className="bi-kpi-card bi-revenue-card">
                     <div className="bi-kpi-label">Customer Revenue by Segment</div>
                     <div className="bi-pie-chart">
-                        <svg width="92" height="90" viewBox="0 0 92 90">
-                            <circle cx="46" cy="45" r="45" fill="#1E4A79" transform="rotate(-57 46 45)" />
-                            <path d="M 46 45 L 46 0 A 45 45 0 0 1 91 45 Z" fill="#9BC0DA" transform="rotate(-57 46 45)" />
-                            <path d="M 46 45 L 91 45 A 45 45 0 0 1 78 83 Z" fill="#FD9C46" transform="rotate(-57 46 45)" />
+                        <svg width="120" height="120" viewBox="0 0 120 120">
+                            {/* Residential: 65% */}
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="#1E4A79" strokeWidth="18"
+                                strokeDasharray="314" strokeDashoffset="110" transform="rotate(-90 60 60)" />
+                            {/* Commercial: 25% */}
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="#9BC0DA" strokeWidth="18"
+                                strokeDasharray="314" strokeDashoffset="235.5" transform="rotate(144 60 60)" />
+                            {/* Industrial: 10% */}
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="#FD9C46" strokeWidth="18"
+                                strokeDasharray="314" strokeDashoffset="282.6" transform="rotate(234 60 60)" />
+                            {/* Inner label */}
+                            <text x="60" y="65" textAnchor="middle" fontSize="16" fontWeight="700" fill="#1B5B7E">Total</text>
                         </svg>
                     </div>
                     <div className="bi-revenue-subtitle">Revenue distribution across customer types</div>
                     <div className="bi-legend-items">
-                        <div className="bi-legend-item"><span className="bi-dot residential"></span>Residential: 65%</div>
-                        <div className="bi-legend-item"><span className="bi-dot commercial"></span>Commercial: 25%</div>
-                        <div className="bi-legend-item"><span className="bi-dot industrial"></span>Industrial: 10%</div>
+                        <div className="bi-legend-item"><span className="bi-dot residential"></span>Res: 65%</div>
+                        <div className="bi-legend-item"><span className="bi-dot commercial"></span>Com: 25%</div>
+                        <div className="bi-legend-item"><span className="bi-dot industrial"></span>Ind: 10%</div>
                     </div>
                 </div>
             </div>
@@ -447,4 +455,3 @@ const BillingInsights = () => {
 };
 
 export default BillingInsights;
-

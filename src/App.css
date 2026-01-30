@@ -168,11 +168,11 @@
   margin: 0 auto;
   height: 100%;
   z-index: 10;
-  padding: 100px 52px 0;
+  padding: 60px 52px 0;
   pointer-events: none;
 }
 
-.hero-content > * {
+.hero-content>* {
   pointer-events: auto;
 }
 
@@ -356,10 +356,10 @@
   width: 1440px;
   max-width: 100%;
   margin: 0 auto;
-  padding: 80px 52px;
+  padding: 60px 52px;
   z-index: 5;
   margin-top: -150px;
-  padding-top: 230px;
+  padding-top: 200px;
 }
 
 .pillars-main-title {
@@ -426,7 +426,7 @@
 
 .pillars-footer-text {
   width: 100%;
-  margin: 100px auto 20px;
+  margin: 60px auto 20px;
   font-style: italic;
   font-weight: 600;
   font-size: 15px;
@@ -593,6 +593,7 @@
 }
 
 @media (max-width: 768px) {
+
   /* Adjust wave details for mobile - ensure visibility */
   .wave-detail-1 {
     width: 100px;
@@ -644,6 +645,7 @@
 }
 
 @media (max-width: 480px) {
+
   /* Further adjust for small mobile - keep visible */
   .wave-detail-1 {
     width: 90px;

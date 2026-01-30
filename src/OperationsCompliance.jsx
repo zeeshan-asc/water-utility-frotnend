@@ -6,7 +6,6 @@ import PageNavigation from './PageNavigation';
 import './OperationsCompliance.css';
 
 // Data
-// Data
 const systemReliabilityData = [
     { month: 'Jan', uptime: 99.2, incidents: 2 },
     { month: 'Feb', uptime: 99.4, incidents: 3 },
@@ -343,23 +342,23 @@ const OperationsCompliance = () => {
                 <div className="oc-quality-card oc-circular-score-card">
                     <div className="oc-circular-score">
                         <div className="score-title">At Risk</div>
-                        <svg width="135.33" height="129.31" viewBox="0 0 135.33 129.31" style={{ marginTop: '10px' }}>
+                        <svg width="180" height="180" viewBox="0 0 180 180" style={{ marginTop: '5px' }}>
                             {/* Background gray circle */}
-                            <circle cx="67.665" cy="64.655" r="60" fill="none" stroke="#D9D9D9" strokeWidth="12" />
+                            <circle cx="90" cy="90" r="80" fill="none" stroke="#D9D9D9" strokeWidth="14" />
                             {/* Blue progress circle - 87% filled */}
-                            <circle cx="67.665" cy="64.655" r="60" fill="none" stroke="#689EC2" strokeWidth="12" 
-                                strokeDasharray="377" strokeDashoffset="49" transform="rotate(-90 67.665 64.655)" strokeLinecap="round" />
+                            <circle cx="90" cy="90" r="80" fill="none" stroke="#689EC2" strokeWidth="14"
+                                strokeDasharray="502" strokeDashoffset="65" transform="rotate(-90 90 90)" strokeLinecap="round" />
                             {/* Large score number */}
-                            <text x="67.665" y="55" textAnchor="middle" fontSize="25.5619" fontWeight="600" fill="#1B5B7E">87</text>
+                            <text x="90" y="82" text-anchor="middle" fontSize="48" fontWeight="700" fill="#1B5B7E">87</text>
                             {/* Score fraction */}
-                            <text x="67.665" y="70" textAnchor="middle" fontSize="15.0364" fontWeight="600" fill="#1B5B7E">87/100</text>
-                            {/* Trend indicator with green text - positioned below 87/100 */}
-                            <text x="67.665" y="85" textAnchor="middle" fontSize="9.02185" fill="#16A34A">
+                            <text x="90" y="108" text-anchor="middle" fontSize="22" fontWeight="600" fill="#1B5B7E">87/100</text>
+                            {/* Trend indicator with green text */}
+                            <text x="90" y="128" text-anchor="middle" fontSize="10" fill="#16A34A">
                                 <tspan>+1.5%</tspan>
                                 <tspan dx="3">In Compliance</tspan>
                             </text>
-                            {/* Compliance Score label at bottom */}
-                            <text x="67.665" y="100" textAnchor="middle" fontSize="9.02185" fill="#073356">Compliance Score</text>
+                            {/* Compliance Score label */}
+                            <text x="90" y="145" text-anchor="middle" fontSize="10" fill="#073356" fontWeight="500">Compliance Score</text>
                         </svg>
                         <div className="score-details">Chlorine: 0.05 mg/L, PFAS: 0.01 ng/L</div>
                     </div>
@@ -783,12 +782,12 @@ const OperationsCompliance = () => {
             <div className="oc-bottom-grid">
                 {/* Chemical and Microbiological Monitoring */}
                 <div className="oc-monitoring-section">
-                    <h2 className="oc-section-title" style={{ fontSize: '18px', marginBottom: '20px' }}>Chemical and Microbiological Monitoring</h2>
+                    <h2 className="oc-section-title" style={{ fontSize: '18px', marginBottom: '12px', marginTop: '0px' }}>Chemical and Microbiological Monitoring</h2>
                     <div className="oc-monitoring-table-container">
                         <table className="oc-monitoring-table">
                             <thead>
                                 <tr>
-                                    <th style={{ textAlign: 'left', paddingLeft: '20px' }}>Facility</th>
+                                    <th style={{ textAlign: 'left', paddingLeft: '15px' }}>Facility</th>
                                     <th>pH Range</th>
                                     <th>Free Chlorine</th>
                                     <th>Total Coliform</th>
@@ -824,7 +823,7 @@ const OperationsCompliance = () => {
 
                 {/* Outreach, Investigations & Notifications */}
                 <div className="oc-outreach-section">
-                    <h2 className="oc-section-title" style={{ fontSize: '18px', marginBottom: '20px' }}>Outreach, Investigations & Notifications</h2>
+                    <h2 className="oc-section-title" style={{ fontSize: '18px', marginBottom: '12px', marginTop: '0px' }}>Outreach, Investigations & Notifications</h2>
                     <div className="oc-outreach-grid-2x2">
                         <div className="oc-outreach-stat-card bg-blue-50">
                             <div className="oc-stat-icon"><Search size={20} color="#689EC2" /></div>

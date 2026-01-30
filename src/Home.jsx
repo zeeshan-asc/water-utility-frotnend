@@ -4,7 +4,7 @@ import './Home.css'
 
 function Home() {
   const location = useLocation()
-  
+
   return (
     <div className="home-page">
       {/* Header & Nav */}
@@ -15,7 +15,7 @@ function Home() {
           </div>
         </div>
         <div className="nav-line-container">
-          
+
         </div>
         <nav className="nav-links">
           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>

@@ -1194,27 +1194,29 @@ const FinancialHealth = () => {
                             </span>
                         </div>
                     </div>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <LineChart data={
-                            (revenueTrends.length > 0 && revenueTrends.every(item =>
-                                item && item.month && typeof item.actual === 'number' && !isNaN(item.actual)
-                            )) ? revenueTrends : [
-                                { month: 'Jan', actual: 2.20, projected: 2.45, budget: 2.20 },
-                                { month: 'Feb', actual: 2.23, projected: 2.40, budget: 2.20 },
-                                { month: 'Mar', actual: 2.26, projected: 2.38, budget: 2.20 },
-                                { month: 'Apr', actual: 2.30, projected: 2.42, budget: 2.20 },
-                                { month: 'May', actual: 2.40, projected: 2.48, budget: 2.20 },
-                                { month: 'Jun', actual: 2.58, projected: 2.52, budget: 2.20 },
-                            ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                            <XAxis dataKey="month" fontSize={11} stroke="#6B7280" />
-                            <YAxis fontSize={11} stroke="#6B7280" />
-                            <Tooltip />
-                            <Line type="monotone" dataKey="actual" stroke="#689EC2" strokeWidth={2} dot={{ r: 3, fill: '#689EC2' }} />
-                            <Line type="monotone" dataKey="projected" stroke="#FD9C46" strokeWidth={2} dot={{ r: 3, fill: '#FD9C46' }} />
-                            <Line type="monotone" dataKey="budget" stroke="#1B5B7E" strokeWidth={2} dot={{ r: 3, fill: '#1B5B7E' }} />
-                        </LineChart>
-                    </ResponsiveContainer>
+                    <div style={{ flex: 1, minHeight: '200px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={
+                                (revenueTrends.length > 0 && revenueTrends.every(item =>
+                                    item && item.month && typeof item.actual === 'number' && !isNaN(item.actual)
+                                )) ? revenueTrends : [
+                                    { month: 'Jan', actual: 2.20, projected: 2.45, budget: 2.20 },
+                                    { month: 'Feb', actual: 2.23, projected: 2.40, budget: 2.20 },
+                                    { month: 'Mar', actual: 2.26, projected: 2.38, budget: 2.20 },
+                                    { month: 'Apr', actual: 2.30, projected: 2.42, budget: 2.20 },
+                                    { month: 'May', actual: 2.40, projected: 2.48, budget: 2.20 },
+                                    { month: 'Jun', actual: 2.58, projected: 2.52, budget: 2.20 },
+                                ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                                <XAxis dataKey="month" fontSize={11} stroke="#6B7280" />
+                                <YAxis fontSize={11} stroke="#6B7280" />
+                                <Tooltip />
+                                <Line type="monotone" dataKey="actual" stroke="#689EC2" strokeWidth={2} dot={{ r: 3, fill: '#689EC2' }} />
+                                <Line type="monotone" dataKey="projected" stroke="#FD9C46" strokeWidth={2} dot={{ r: 3, fill: '#FD9C46' }} />
+                                <Line type="monotone" dataKey="budget" stroke="#1B5B7E" strokeWidth={2} dot={{ r: 3, fill: '#1B5B7E' }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                     <div className="fh-chart-y-label">Revenue ($)</div>
                 </div>
 
@@ -1239,7 +1241,7 @@ const FinancialHealth = () => {
                         </div>
                     </div>
                     <div className="fh-budget-variance-chart-container">
-                        <ResponsiveContainer width="100%" height={171}>
+                        <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 data={budgetVarianceChartData}
                                 layout="vertical"
@@ -1483,24 +1485,26 @@ const FinancialHealth = () => {
                             </span>
                         </div>
                     </div>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <AreaChart data={operationalMargins.length > 0 ? operationalMargins : [
-                            { month: 'Jan', expense: 2.75, margin: 0.25, revenue: 4.4 },
-                            { month: 'Feb', expense: 2.8, margin: 0.3, revenue: 4.5 },
-                            { month: 'Mar', expense: 2.9, margin: 0.25, revenue: 4.4 },
-                            { month: 'Apr', expense: 3.0, margin: 0.3, revenue: 4.6 },
-                            { month: 'May', expense: 3.1, margin: 0.35, revenue: 4.8 },
-                            { month: 'Jun', expense: 3.15, margin: 0.35, revenue: 4.9 },
-                        ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                            <XAxis dataKey="month" fontSize={11} stroke="#6B7280" />
-                            <YAxis fontSize={11} stroke="#6B7280" />
-                            <Tooltip />
-                            <Area type="monotone" dataKey="revenue" stackId="1" stroke="#1B5B7E" fill="rgba(27, 91, 126, 0.4)" />
-                            <Area type="monotone" dataKey="expense" stackId="2" stroke="#689EC2" fill="rgba(104, 158, 194, 0.4)" />
-                            <Area type="monotone" dataKey="margin" stackId="3" stroke="#FD9C46" fill="rgba(253, 156, 70, 0.4)" />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    <div style={{ flex: 1, minHeight: '200px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={operationalMargins.length > 0 ? operationalMargins : [
+                                { month: 'Jan', expense: 2.75, margin: 0.25, revenue: 4.4 },
+                                { month: 'Feb', expense: 2.8, margin: 0.3, revenue: 4.5 },
+                                { month: 'Mar', expense: 2.9, margin: 0.25, revenue: 4.4 },
+                                { month: 'Apr', expense: 3.0, margin: 0.3, revenue: 4.6 },
+                                { month: 'May', expense: 3.1, margin: 0.35, revenue: 4.8 },
+                                { month: 'Jun', expense: 3.15, margin: 0.35, revenue: 4.9 },
+                            ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                                <XAxis dataKey="month" fontSize={11} stroke="#6B7280" />
+                                <YAxis fontSize={11} stroke="#6B7280" />
+                                <Tooltip />
+                                <Area type="monotone" dataKey="revenue" stackId="1" stroke="#1B5B7E" fill="rgba(27, 91, 126, 0.4)" />
+                                <Area type="monotone" dataKey="expense" stackId="2" stroke="#689EC2" fill="rgba(104, 158, 194, 0.4)" />
+                                <Area type="monotone" dataKey="margin" stackId="3" stroke="#FD9C46" fill="rgba(253, 156, 70, 0.4)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                     <div className="fh-chart-y-label">Amount ($)</div>
                 </div>
 
