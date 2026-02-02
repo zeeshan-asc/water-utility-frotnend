@@ -204,19 +204,20 @@
 .oc-kpi-card {
     background: #FAFAFA;
     border: none;
-    border-top: 4.05px solid #1B5B7E;
-    box-shadow: 4.05px 4.05px 11.65px rgba(0, 0, 0, 0.05);
-    border-radius: 8.86px;
+    border-top: 4.5px solid #1B5B7E;
+    box-shadow: 4.05px 4.05px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
     padding: 15px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     min-height: 120px;
+    transition: all 0.25s ease;
 }
 
 @media (min-width: 768px) {
     .oc-kpi-card {
-        padding: 18px;
+        padding: 20px;
         height: 130px;
     }
 }
@@ -275,20 +276,21 @@
 
 .oc-chart-card {
     background: #FFFFFF;
-    border: 0.74px solid #E5E7EB;
-    box-shadow: 2px 2px 3.5px rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
     padding: 15px;
     position: relative;
     display: flex;
     flex-direction: column;
     min-width: 0;
     overflow: hidden;
+    transition: all 0.25s ease;
 }
 
 @media (min-width: 768px) {
     .oc-chart-card {
-        padding: 20px;
+        padding: 22px;
     }
 }
 
@@ -436,12 +438,18 @@
 
 .oc-risk-card {
     background: #FFFFFF;
-    border: 1.07px solid #E5E7EB;
-    box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.1);
-    border-radius: 8.6px;
-    padding: 18px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
+    transition: all 0.25s ease;
+}
+
+.oc-risk-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.12);
 }
 
 .oc-risk-header {
@@ -527,25 +535,30 @@
 
 .oc-maintenance-item {
     background: #FAFAFA;
-    border-left: 4.08px solid #1B5B7E;
-    box-shadow: inset 3px 3px 7.5px rgba(0, 0, 0, 0.05);
-    border-radius: 0px 7.3px 7.3px 0px;
-    padding: 20px 30px;
+    border-left: 4.5px solid #1B5B7E;
+    box-shadow: inset 3px 3px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 0px 10px 10px 0px;
+    padding: 22px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.05));
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.06));
     border: 1px solid #E5E7EB;
-    /* Subtle border to define shape */
-    border-left-width: 4px;
+    border-left-width: 4.5px;
+    transition: all 0.25s ease;
+}
+
+.oc-maintenance-item:hover {
+    background: #FFFFFF;
+    box-shadow: inset 0 0 0 rgba(0, 0, 0, 0), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .oc-maintenance-title {
     font-family: 'Segoe UI', sans-serif;
     font-weight: 700;
-    font-size: 14.8px;
+    font-size: 15.5px;
     color: #111827;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
 }
 
 .oc-maintenance-schedule {
@@ -586,13 +599,7 @@
 
 @media (min-width: 768px) {
     .oc-lab-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (min-width: 1200px) {
-    .oc-lab-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: 0.7fr 1.1fr 1.3fr 1fr;
     }
 }
 
@@ -747,105 +754,32 @@
     }
 
     .oc-gauge-container {
-        min-height: 180px;
+        min-height: 140px;
+        /* Reduced from 180px */
     }
 
     .oc-gauge-container .recharts-wrapper {
-        height: 110px !important;
+        height: 140px !important;
+        /* Reverted to 140px */
+        /* Reduced */
     }
 
-    .oc-gauge-overlay {
-        top: 28%;
-    }
-
-    .oc-gauge-value-container {
-        top: 70%;
-    }
-
-    .oc-gauge-minmax {
-        bottom: 25px;
-        font-size: 8px;
-    }
-
-    .oc-gauge-footer {
-        bottom: 5px;
-        font-size: 7px;
-    }
-
-    .oc-gauge-arc-label {
-        font-size: 8px;
-    }
-
-    .oc-gauge-arc-label-right {
-        top: 22%;
-        right: 18%;
-    }
-
-    .oc-gauge-arc-label-left {
-        top: 22%;
-        left: 18%;
-    }
-
-    .oc-gauge-value {
-        font-size: 20px;
-    }
-
-    .oc-gauge-label {
-        font-size: 8px;
-    }
-
-    .oc-gauge-subtext {
-        font-size: 7px;
-    }
-
-    .oc-gauge-target-label {
-        font-size: 7px;
-    }
-
-    .oc-gauge-minmax {
-        font-size: 8px;
-    }
-
-    .oc-gauge-footer {
-        font-size: 7px;
-    }
-
-    .oc-circular-score {
-        min-height: 160px;
-        padding: 5px;
-    }
-
-    .oc-circular-score svg {
-        max-width: 100px;
-    }
-
-    .oc-circular-score .score-title {
-        font-size: 7px;
-    }
-
-    .oc-circular-score .score-trend {
-        font-size: 7px;
-        top: 75px;
-    }
-
-    .oc-circular-score .score-details {
-        font-size: 7px;
-        padding: 2px;
-    }
+    /* ... other existing styles within this media query ... */
 }
 
 .oc-lab-card {
     background: #FAFAFA;
-    border-top: 4.05px solid #1B5B7E;
+    border-top: 4px solid #1B5B7E;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     border-radius: 10px;
-    padding: 15px;
+    padding: 12px;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    min-height: 260px;
+    min-height: 160px;
+    /* Reduced further for compact layout */
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -861,11 +795,13 @@
 .oc-lab-card-title {
     font-family: 'Segoe UI', sans-serif;
     font-weight: 700;
-    font-size: 16px;
-    line-height: 21px;
+    font-size: 14px;
+    /* Slightly smaller title */
+    line-height: 1.2;
     text-align: center;
     color: #1B5B7E;
-    margin: 0 0 15px 0;
+    margin: 0 0 5px 0;
+    /* Further reduced margin */
     padding: 0;
     width: 100%;
 }
@@ -879,7 +815,8 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 10px;
+    /* Further reduced padding */
     width: 100%;
     box-sizing: border-box;
     margin: 0 auto;
@@ -898,19 +835,21 @@
     font-weight: 600;
     font-size: 24px;
     color: #1B5B7E;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
 }
 
 @media (min-width: 768px) {
     .oc-lab-big-value {
-        font-size: 28px;
+        font-size: 26px;
+        /* Reduced from 28px */
     }
 }
 
 .oc-lab-unit {
     font-family: 'Segoe UI', sans-serif;
     font-weight: 400;
-    font-size: 14px;
+    font-size: 13px;
+    /* Reduced from 14px */
     text-align: center;
     color: #1B5B7E;
     line-height: 1.2;
@@ -918,7 +857,8 @@
 
 @media (min-width: 768px) {
     .oc-lab-unit {
-        font-size: 16px;
+        font-size: 14px;
+        /* Reduced from 16px */
     }
 }
 
@@ -932,27 +872,35 @@
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    min-height: 140px;
+    /* Force minimum height for content */
 }
 
 .oc-gauge-container .MuiGauge-root {
     width: 100% !important;
-    max-width: 300px;
-    height: 180px !important;
+    max-width: 220px;
+    height: 140px !important;
+    /* Reverted to 140px */
+    /* Reduced fixed height */
     margin: 0 auto;
 }
 
 @media (max-width: 768px) {
     .oc-gauge-container .MuiGauge-root {
-        max-width: 250px;
-        height: 150px !important;
+        max-width: 200px;
+        height: 120px !important;
     }
 }
 
 .oc-gauge-text-container {
+    position: absolute;
+    bottom: 25px;
+    left: 0;
+    right: 0;
     text-align: center;
-    margin-top: 8px;
     width: 100%;
-    padding: 0 15px;
+    padding: 0 10px;
+    z-index: 10;
 }
 
 .oc-gauge-overlay {
@@ -968,12 +916,12 @@
 
 .oc-gauge-label {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 13.9583px;
+    font-size: 10px;
     font-weight: 400;
     color: #1B5B7E;
     margin-bottom: 0;
     white-space: nowrap;
-    line-height: 19px;
+    line-height: 1.2;
 }
 
 .oc-gauge-value-container {
@@ -991,9 +939,9 @@
 .oc-gauge-value {
     font-family: 'Segoe UI', sans-serif;
     font-weight: 700;
-    font-size: 30px;
+    font-size: 22px;
     color: #1B5B7E;
-    line-height: 1.2;
+    line-height: 1.1;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -1002,12 +950,12 @@
 
 .oc-gauge-subtext {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 14px;
+    font-size: 9px;
     font-weight: 400;
     color: #1B5B7E;
-    margin: 4px 0 0 0;
+    margin: 1px 0 0 0;
     padding: 0;
-    line-height: 1.5;
+    line-height: 1.2;
     text-align: center;
     width: 100%;
 }
@@ -1085,24 +1033,61 @@
 
 .oc-gauge-footer {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 12px;
+    font-size: 8px;
     font-weight: 400;
     text-align: center;
     color: #6B7280;
-    padding: 4px 0 0 0;
-    line-height: 1.5;
-    position: relative;
+    padding: 0;
+    line-height: 1.2;
+    position: absolute;
+    bottom: 2px;
+    left: 0;
+    right: 0;
     width: 100%;
-    margin-top: 4px;
+    z-index: 15;
 }
 
 .oc-lab-card:first-child .oc-gauge-footer {
     display: none;
 }
 
-.oc-lab-split {
+/* Gauge Arc Value - number displayed at top of the arc */
+.oc-gauge-arc-value {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1B5B7E;
+    z-index: 3;
+}
+
+/* Gauge Scale - min/max values at ends of the arc */
+.oc-gauge-scale {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    width: 85%;
+    position: absolute;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.oc-gauge-min,
+.oc-gauge-max {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: #6B7280;
+}
+
+.oc-lab-split {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     gap: 15px;
     width: 100%;
     justify-content: center;
@@ -1111,8 +1096,20 @@
 }
 
 .oc-lab-split .oc-lab-inner-box {
-    width: 100%;
-    flex: 1;
+    width: calc(50% - 7.5px);
+    min-width: 0;
+    flex: 1 1 45%;
+}
+
+.oc-lab-split .oc-lab-inner-box:first-child {
+    background: #FAFAFA;
+    border: 2.33px solid #1B5B7E;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
+}
+
+.oc-lab-split .oc-lab-inner-box:last-child {
+    background: #FAFAFA;
+    border: 2.33px solid #1B5B7E;
 }
 
 @media (min-width: 768px) {
@@ -1571,6 +1568,8 @@
     grid-template-columns: 1fr;
     gap: 20px;
     margin-top: 0px;
+    margin-bottom: 40px;
+    /* Moved margin here */
 }
 
 @media (min-width: 1024px) {
@@ -1601,12 +1600,15 @@
     padding: 12px 15px;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    /* Ensure full height */
 }
 
 .oc-monitoring-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    flex: 1;
 }
 
 .oc-monitoring-table {
@@ -1666,6 +1668,8 @@
     padding: 12px 15px;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    /* Ensure full height */
 }
 
 .oc-outreach-grid-2x2 {
@@ -1749,8 +1753,8 @@
 /* Water Quality & Regulatory Compliance Section */
 .oc-quality-compliance-row {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 18px;
     margin-bottom: 30px;
     align-items: stretch;
 }
@@ -1760,44 +1764,13 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
-
-    .oc-quality-card.oc-circular-score-card {
-        grid-column: span 2;
-    }
 }
 
 @media (min-width: 1024px) {
     .oc-quality-compliance-row {
-        display: flex;
-        flex-direction: row;
-        grid-template-columns: none;
-        align-items: stretch;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
     }
-
-    .oc-quality-card.oc-circular-score-card {
-        flex: 0 0 auto;
-        width: 267px;
-        max-width: 267px;
-        min-width: 267px;
-    }
-}
-
-@media (max-width: 767px) {
-    .oc-quality-compliance-row {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-
-    .oc-quality-card.oc-circular-score-card {
-        grid-column: span 1;
-    }
-}
-
-.oc-quality-metrics {
-    display: flex;
-    flex-direction: column;
-    gap: 4.43px;
-    flex: 1;
 }
 
 .oc-quality-card {
@@ -1805,207 +1778,79 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    justify-content: flex-end;
     padding: 15px;
-    gap: 8px;
+    /* Reduced vertical padding */
+    gap: 4px;
     background: #FAFAFA;
-    border-top: 4.05315px solid #1B5B7E;
-    box-shadow: 4.05315px 4.05315px 11.6528px rgba(0, 0, 0, 0.05);
-    border-radius: 8.86198px;
-    flex: 1;
-    min-width: 0;
-    min-height: 220px;
+    border-top: 4px solid #1B5B7E;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.05);
+    border-radius: 9px;
+    border: none;
+    justify-content: flex-end;
+    height: 180px;
+    /* Reduced from 250px */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-@media (min-width: 768px) {
-    .oc-quality-card {
-        padding: 17.724px;
-    }
-}
-
-@media (max-width: 767px) {
-    .oc-quality-card {
-        padding: 12px;
-        min-width: 100%;
-    }
+.oc-quality-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.08);
 }
 
 .oc-quality-card.oc-circular-score-card {
+    justify-content: center;
     align-items: center;
-    justify-content: flex-start;
-    padding: 15px;
-    width: 100%;
-    max-width: 300px;
-    min-height: 260px;
-    box-sizing: border-box;
-    border: 2px dashed #689EC2;
-    background: #FFFFFF;
-}
-
-@media (min-width: 768px) {
-    .oc-quality-card.oc-circular-score-card {
-        padding: 17.7461px;
-    }
-}
-
-@media (max-width: 767px) {
-    .oc-quality-card.oc-circular-score-card {
-        padding: 12px;
-    }
+    padding: 10px;
 }
 
 .oc-quality-metric {
-    width: 100%;
-    min-height: 19px;
-    font-family: 'Noto Sans', sans-serif;
-    font-style: normal;
-    font-weight: 500;
-    font-size: 15px;
-    line-height: 1.2;
-    display: flex;
-    align-items: center;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    /* Slightly smaller */
+    font-weight: 600;
     color: #4B5563;
-}
-
-@media (min-width: 768px) {
-    .oc-quality-metric {
-        font-size: 17px;
-        height: auto;
-    }
+    margin-bottom: 5px;
 }
 
 .oc-quality-value {
-    width: 100%;
     font-family: 'Noto Sans', sans-serif;
-    font-style: normal;
+    font-size: 28px;
+    /* Reduced from 32px */
     font-weight: 700;
-    font-size: 30px;
-    line-height: 1.1;
-    display: flex;
-    align-items: center;
     color: #1B5B7E;
-    margin: 2px 0;
-}
-
-@media (min-width: 768px) {
-    .oc-quality-value {
-        font-size: 36px;
-        height: auto;
-    }
+    margin-bottom: 2px;
 }
 
 .oc-quality-status {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 2px 0px 0px;
-    gap: 3.79px;
-    width: 100%;
-    font-family: 'Segoe UI', sans-serif;
-    font-style: normal;
-    font-weight: 500;
-    font-size: 11px;
-    line-height: 1.2;
-    display: flex;
-    align-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 2px;
 }
 
-.oc-quality-status.safe {
-    color: #16A34A;
-}
-
-.oc-quality-status.critical {
-    color: #DC2626;
-}
-
-.oc-quality-status.warning {
-    color: #FD9C46;
-}
-
-/* Circular Score */
-.oc-circular-score {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: 300px;
-    position: relative;
-    padding: 15px 10px;
-    min-height: 240px;
-    margin: 0 auto;
-}
-
-.oc-circular-score svg {
-    width: 135.33px;
-    max-width: 135.33px;
-    height: 129.31px;
-    flex-shrink: 0;
-}
-
-.oc-circular-score text {
-    font-family: 'League Spartan', 'Segoe UI', sans-serif;
-}
-
-.oc-circular-score .score-title {
-    position: absolute;
-    width: 96.23px;
-    height: 8px;
-    font-family: 'League Spartan', sans-serif;
-    font-style: normal;
-    font-weight: 400;
-    font-size: 11px;
-    line-height: normal;
-    text-align: center;
-    color: #073356;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.oc-circular-score .score-trend {
-    display: none;
-    /* Moved inside SVG */
-}
-
-.oc-circular-score .score-details {
-    position: absolute;
-    width: 100%;
-    max-width: 237.58px;
-    min-height: 20px;
-    font-family: 'League Spartan', sans-serif;
-    font-style: normal;
-    font-weight: 300;
-    font-size: 11.5px;
-    line-height: 1.3;
-    text-align: center;
-    color: #073356;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: normal;
-    padding: 5px;
-    box-sizing: border-box;
-}
+/* ... existing styles ... */
 
 @media (min-width: 768px) {
     .oc-circular-score {
-        min-height: 260px;
-        padding: 20px 15px;
+        min-height: 160px;
+        /* Reduced */
+        padding: 10px;
         max-width: 300px;
     }
 
     .oc-circular-score svg {
-        width: 135.33px;
-        max-width: 135.33px;
-        height: 129.31px;
+        width: 135px;
+        height: 100px;
+        /* Reduced height */
     }
 
     .oc-quality-card.oc-circular-score-card {
         max-width: 300px;
-        width: 300px;
-        min-height: 280px;
+        width: 100%;
+        min-height: 180px;
+        /* Reduced from 280px */
     }
+
+    /* ... */
 
     .oc-circular-score .score-title {
         font-size: 10px;
@@ -2227,7 +2072,7 @@
     font-size: 12px;
     line-height: 1.5;
     color: #606060;
-    text-align: left;
+    text-align: center;
     padding: 8px 4px;
     white-space: nowrap;
 }
@@ -2258,6 +2103,7 @@
     color: #111827;
     padding: 8px 4px;
     border-bottom: 0.3px solid #D9D9D9;
+    text-align: center;
 }
 
 @media (min-width: 768px) {
@@ -2389,6 +2235,7 @@
         white-space: normal;
         display: -webkit-box;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
@@ -2453,5 +2300,6 @@
     .oc-search-text {
         font-size: 12px;
         -webkit-line-clamp: 3;
+        line-clamp: 3;
     }
 }

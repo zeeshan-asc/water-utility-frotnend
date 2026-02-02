@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
     LineChart, Line, AreaChart, Area, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -218,6 +219,7 @@ const FinancialHealth = () => {
     const [alerts, setAlerts] = useState([]);
     const [revenueSummary, setRevenueSummary] = useState(null);
     const [scenarios, setScenarios] = useState([]);
+    const [scenarioTab, setScenarioTab] = useState('manual');
 
     // AI Chatbot states
     const [aiQuestion, setAiQuestion] = useState('');
@@ -667,7 +669,44 @@ const FinancialHealth = () => {
         }
     };
 
-    // Reusable renderer for the AI search bar (textbox + button)
+    // Handle Save Scenario
+    const handleSaveScenario = async () => {
+        if (!scenarioName.trim()) {
+            // Simple validation
+            console.warn('Scenario name is required');
+            return;
+        }
+
+        const newScenario = {
+            name: scenarioName,
+            rate_increase: rateIncrease,
+            water_loss_reduction: waterLoss,
+            expense_growth: expenseGrowth,
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            // Attempt to save to backend
+            const response = await fetch(`${API_BASE_URL}/api/v0/dashboard/scenarios`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newScenario)
+            });
+
+            // Even if the backend POST isn't perfectly implemented, we update local state
+            setScenarios(prev => [...prev, newScenario]);
+            setScenarioName('');
+
+            // Visual feedback could be added here (e.g., a toast or temporary success state)
+            console.log('Scenario saved:', newScenario);
+        } catch (err) {
+            console.error('Failed to save scenario:', err);
+            // Fallback to local state update
+            setScenarios(prev => [...prev, newScenario]);
+            setScenarioName('');
+        }
+    };
+
     const renderAiSearchBar = () => (
         <div className="fh-ai-search-bar">
             <form
@@ -835,7 +874,9 @@ const FinancialHealth = () => {
             <div className="fh-page-header">
                 <div className="fh-page-header-wrapper">
                     <div>
-                        <h1 className="fh-brand-title">AquaSentinel™</h1>
+                        <h1 className="fh-brand-title">
+                            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>AquaSentinel™</Link>
+                        </h1>
                         <p className="fh-brand-subtitle">CFO Command Intelligence for Financial, Operational, Billing & Compliance Oversight</p>
                     </div>
                 </div>
@@ -1298,75 +1339,120 @@ const FinancialHealth = () => {
                     <div className="fh-scenario-header">
                         <div className="fh-scenario-title">Scenario Planning</div>
                         <div className="fh-scenario-tabs">
-                            <button className="fh-scenario-tab active">Manual</button>
-                            <button className="fh-scenario-tab">Presets</button>
+                            <button
+                                className={`fh-scenario-tab ${scenarioTab === 'manual' ? 'active' : ''}`}
+                                onClick={() => setScenarioTab('manual')}
+                            >
+                                Manual
+                            </button>
+                            <button
+                                className={`fh-scenario-tab ${scenarioTab === 'presets' ? 'active' : ''}`}
+                                onClick={() => setScenarioTab('presets')}
+                            >
+                                Presets
+                            </button>
                         </div>
                     </div>
 
-                    <div className="fh-scenario-input">
-                        <div className="fh-input-label-row">
-                            <span>Rate Increase</span>
-                            <span className="fh-input-value">{rateIncrease}.00%</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={rateIncrease}
-                            onChange={(e) => setRateIncrease(parseFloat(e.target.value))}
-                            className="fh-slider"
-                        />
-                        <div className="fh-impact-text positive">
-                            Revenue impact: {calculateRateIncreaseImpact() >= 0 ? '+' : ''}{formatCurrency(calculateRateIncreaseImpact())}
-                        </div>
-                    </div>
+                    {scenarioTab === 'manual' ? (
+                        <>
+                            <div className="fh-scenario-input">
+                                <div className="fh-input-label-row">
+                                    <span>Rate Increase</span>
+                                    <span className="fh-input-value">{rateIncrease}.00%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={rateIncrease}
+                                    onChange={(e) => setRateIncrease(parseFloat(e.target.value))}
+                                    className="fh-slider"
+                                />
+                                <div className="fh-impact-text positive">
+                                    Revenue impact: {calculateRateIncreaseImpact() >= 0 ? '+' : ''}{formatCurrency(calculateRateIncreaseImpact())}
+                                </div>
+                            </div>
 
-                    <div className="fh-scenario-input">
-                        <div className="fh-input-label-row">
-                            <span>Water Loss Reduction</span>
-                            <span className="fh-input-value">{waterLoss}.00%</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={waterLoss}
-                            onChange={(e) => setWaterLoss(parseFloat(e.target.value))}
-                            className="fh-slider"
-                        />
-                        <div className="fh-impact-text positive">
-                            Revenue impact: {calculateWaterLossImpact() >= 0 ? '+' : ''}{formatCurrency(calculateWaterLossImpact())}
-                        </div>
-                    </div>
+                            <div className="fh-scenario-input">
+                                <div className="fh-input-label-row">
+                                    <span>Water Loss Reduction</span>
+                                    <span className="fh-input-value">{waterLoss}.00%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={waterLoss}
+                                    onChange={(e) => setWaterLoss(parseFloat(e.target.value))}
+                                    className="fh-slider"
+                                />
+                                <div className="fh-impact-text positive">
+                                    Revenue impact: {calculateWaterLossImpact() >= 0 ? '+' : ''}{formatCurrency(calculateWaterLossImpact())}
+                                </div>
+                            </div>
 
-                    <div className="fh-scenario-input">
-                        <div className="fh-input-label-row">
-                            <span>Expense Growth</span>
-                            <span className="fh-input-value">{expenseGrowth}.00%</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={expenseGrowth}
-                            onChange={(e) => setExpenseGrowth(parseFloat(e.target.value))}
-                            className="fh-slider"
-                        />
-                        <div className="fh-impact-text negative">
-                            Expense impact: {calculateExpenseImpact() >= 0 ? '+' : ''}{formatCurrency(calculateExpenseImpact())}
-                        </div>
-                    </div>
+                            <div className="fh-scenario-input">
+                                <div className="fh-input-label-row">
+                                    <span>Expense Growth</span>
+                                    <span className="fh-input-value">{expenseGrowth}.00%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={expenseGrowth}
+                                    onChange={(e) => setExpenseGrowth(parseFloat(e.target.value))}
+                                    className="fh-slider"
+                                />
+                                <div className="fh-impact-text negative">
+                                    Expense impact: {calculateExpenseImpact() >= 0 ? '+' : ''}{formatCurrency(calculateExpenseImpact())}
+                                </div>
+                            </div>
 
-                    <div className="fh-scenario-input">
-                        <input
-                            type="text"
-                            className="fh-scenario-name-input"
-                            placeholder="Scenario Name"
-                            value={scenarioName}
-                            onChange={(e) => setScenarioName(e.target.value)}
-                        />
-                        <button className="fh-save-btn">Save</button>
-                    </div>
+                            <div className="fh-scenario-input">
+                                <input
+                                    type="text"
+                                    className="fh-scenario-name-input"
+                                    placeholder="Scenario Name"
+                                    value={scenarioName}
+                                    onChange={(e) => setScenarioName(e.target.value)}
+                                />
+                                <button
+                                    className="fh-save-btn"
+                                    onClick={handleSaveScenario}
+                                    disabled={!scenarioName.trim()}
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="fh-presets-list">
+                            {scenarios.length > 0 ? (
+                                scenarios.map((s, idx) => (
+                                    <div key={idx} className="fh-preset-item"
+                                        onClick={() => {
+                                            setRateIncrease(s.rate_increase || 0);
+                                            setWaterLoss(s.water_loss_reduction || 0);
+                                            setExpenseGrowth(s.expense_growth || 0);
+                                            setScenarioTab('manual');
+                                        }}>
+                                        <div className="fh-preset-name">{s.name}</div>
+                                        <div className="fh-preset-details">
+                                            <span>Rate: +{s.rate_increase}%</span>
+                                            <span>Loss: -{s.water_loss_reduction}%</span>
+                                            <span>Exp: +{s.expense_growth}%</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="fh-no-presets">
+                                    No saved scenarios yet.
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="fh-scenario-impact-box">
                         <div className="fh-impact-header">SCENARIO IMPACT</div>

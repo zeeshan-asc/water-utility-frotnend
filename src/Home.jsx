@@ -40,7 +40,9 @@ function Home() {
       {/* Hero Section */}
       <section className="hero-wrapper">
         <div className="hero-content">
-          <h1 className="brand-name">AquaSentinel™</h1>
+          <h1 className="brand-name">
+            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>AquaSentinel™</Link>
+          </h1>
           <p className="brand-description">
             Unified, real-time oversight of financial performance, operational risk, regulatory exposure, and customer revenue.
           </p>
