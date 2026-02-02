@@ -168,6 +168,7 @@
 }
 
 /* KPI Row */
+/* KPI Row */
 .bi-kpi-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -234,57 +235,123 @@
 }
 
 /* Revenue Card with Pie Chart */
+/* Revenue Card with Pie Chart */
+/* Revenue Card with Pie Chart */
 .bi-revenue-card {
-    position: relative;
-    align-items: center;
-    min-height: 240px;
-    /* Increased to accommodate chart and legend */
-    justify-content: flex-end;
+    grid-column: span 1;
+    /* Explicitly 1 column */
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 10px !important;
+    /* Tight padding */
+    gap: 2px;
+    background: #FFFFFF;
+    border-top: 4px solid #1B5B7E;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.08);
+    min-height: 125.32px;
 }
 
-.bi-revenue-card .bi-kpi-label {
-    margin-bottom: auto;
-    width: 100%;
+.bi-revenue-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding: 0;
+    max-width: 45%;
+    margin-left: 5px;
+}
+
+.bi-revenue-card-title {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    /* Increased */
+    line-height: 1.1;
+    color: #1E4A79;
+    margin-bottom: 15px;
+    /* More space */
+}
+
+.bi-revenue-card-subtitle {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 400;
+    font-size: 10px;
+    line-height: 1.2;
+    color: #4B5563;
+}
+
+.bi-revenue-right {
+    position: relative;
+    width: 160px;
+    /* Increased */
+    min-width: 160px;
+    flex-shrink: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: -5px;
+}
+
+.bi-solid-pie-chart {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: conic-gradient(#EA580C 0% 10%,
+            #9BC0DA 10% 35%,
+            #1E4A79 35% 100%);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    transform: rotate(0deg);
+    margin-right: 45px;
+    /* Aggressive left shift */
+}
+
+.bi-chart-label {
+    position: absolute;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #374151;
+    z-index: 10;
+}
+
+.label-ind {
+    color: #EA580C;
+    top: 5px;
+    right: 5px;
+    /* Stay right */
     text-align: left;
 }
 
-.bi-pie-chart {
-    width: 120px;
-    height: 120px;
-    margin: 15px auto;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.label-com {
+    color: #527F9E;
+    bottom: 5px;
+    right: 5px;
+    /* Stay right */
+    text-align: left;
 }
 
-.bi-revenue-subtitle {
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 11px;
-    color: #4B5563;
-    text-align: center;
-    margin-bottom: 12px;
-    width: 100%;
+.label-res {
+    color: #1E4A79;
+    left: -35px;
+    /* Far left */
+    bottom: 25px;
+    text-align: right;
 }
 
-.bi-legend-items {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
+/* Residential */
+.bi-revenue-card .bi-legend-item:nth-child(2) {
+    color: #527F9E;
 }
 
-.bi-legend-item {
-    font-family: 'Segoe UI', sans-serif;
-    font-weight: 600;
-    font-size: 10px;
-    color: #1B5B7E;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+/* Commercial */
+.bi-revenue-card .bi-legend-item:nth-child(3) {
+    color: #EA580C;
 }
+
+/* Industrial */
 
 .bi-dot {
     width: 8px;
@@ -297,11 +364,13 @@
 }
 
 .bi-dot.commercial {
-    background: #527F9E;
+    background: #9BC0DA;
+    /* Updated to match pie chart color #9BC0DA from SVG, user CSS said #9BC0DA for ellipse but #527F9E text */
 }
 
 .bi-dot.industrial {
-    background: #EA580C;
+    background: #FD9C46;
+    /* Updated to match pie chart color #FD9C46 */
 }
 
 /* Revenue Chart Card */
@@ -935,6 +1004,7 @@
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 20px;
     margin-top: 20px;
+    margin-bottom: 40px;
     width: 100%;
 }
 

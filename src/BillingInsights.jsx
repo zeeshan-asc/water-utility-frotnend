@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Search, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Flag, FileText, DollarSign, Target, BarChart3, Bot } from 'lucide-react';
 import PageNavigation from './PageNavigation';
 import './BillingInsights.css';
@@ -75,7 +76,9 @@ const BillingInsights = () => {
         <div className="billing-insights-container">
             {/* Page Header */}
             <div className="bi-page-header">
-                <h1 className="bi-brand-title">AquaSentinel™</h1>
+                <h1 className="bi-brand-title">
+                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>AquaSentinel™</Link>
+                </h1>
                 <p className="bi-brand-subtitle">CFO Command Intelligence for Financial, Operational, Billing & Compliance Oversight</p>
             </div>
 
@@ -126,29 +129,16 @@ const BillingInsights = () => {
                     <div className="bi-kpi-change neutral">Per month per account</div>
                 </div>
 
-                {/* Customer Revenue by Segment Card */}
                 <div className="bi-kpi-card bi-revenue-card">
-                    <div className="bi-kpi-label">Customer Revenue by Segment</div>
-                    <div className="bi-pie-chart">
-                        <svg width="120" height="120" viewBox="0 0 120 120">
-                            {/* Residential: 65% */}
-                            <circle cx="60" cy="60" r="50" fill="none" stroke="#1E4A79" strokeWidth="18"
-                                strokeDasharray="314" strokeDashoffset="110" transform="rotate(-90 60 60)" />
-                            {/* Commercial: 25% */}
-                            <circle cx="60" cy="60" r="50" fill="none" stroke="#9BC0DA" strokeWidth="18"
-                                strokeDasharray="314" strokeDashoffset="235.5" transform="rotate(144 60 60)" />
-                            {/* Industrial: 10% */}
-                            <circle cx="60" cy="60" r="50" fill="none" stroke="#FD9C46" strokeWidth="18"
-                                strokeDasharray="314" strokeDashoffset="282.6" transform="rotate(234 60 60)" />
-                            {/* Inner label */}
-                            <text x="60" y="65" textAnchor="middle" fontSize="16" fontWeight="700" fill="#1B5B7E">Total</text>
-                        </svg>
+                    <div className="bi-revenue-left">
+                        <div className="bi-revenue-card-title">Customer Revenue<br />by Segment</div>
+                        <div className="bi-revenue-card-subtitle">Revenue distribution across<br />customer types</div>
                     </div>
-                    <div className="bi-revenue-subtitle">Revenue distribution across customer types</div>
-                    <div className="bi-legend-items">
-                        <div className="bi-legend-item"><span className="bi-dot residential"></span>Res: 65%</div>
-                        <div className="bi-legend-item"><span className="bi-dot commercial"></span>Com: 25%</div>
-                        <div className="bi-legend-item"><span className="bi-dot industrial"></span>Ind: 10%</div>
+                    <div className="bi-revenue-right">
+                        <div className="bi-solid-pie-chart"></div>
+                        <div className="bi-chart-label label-res">Residential: 65%</div>
+                        <div className="bi-chart-label label-ind">Industrial: 10%</div>
+                        <div className="bi-chart-label label-com">Commercial: 25%</div>
                     </div>
                 </div>
             </div>

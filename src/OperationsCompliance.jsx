@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
 import { AlertCircle, CheckCircle, Activity, Search, TrendingUp, TrendingDown, Settings, Droplet } from 'lucide-react';
@@ -59,7 +60,9 @@ const OperationsCompliance = () => {
         <div className="operations-compliance-container">
             {/* Page Header */}
             <div className="oc-page-header">
-                <h1 className="oc-brand-title">AquaSentinel™</h1>
+                <h1 className="oc-brand-title">
+                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>AquaSentinel™</Link>
+                </h1>
                 <div className="oc-brand-subtitle">CFO Command Intelligence for Financial, Operational, Billing & Compliance Oversight</div>
             </div>
 
@@ -316,7 +319,7 @@ const OperationsCompliance = () => {
 
             {/* Water Quality & Regulatory Compliance */}
             <h2 className="oc-section-title">
-                <Activity size={22} />
+                <Activity size={22} className="oc-section-icon" />
                 Water Quality & Regulatory Compliance
             </h2>
 
@@ -340,27 +343,48 @@ const OperationsCompliance = () => {
                 </div>
 
                 <div className="oc-quality-card oc-circular-score-card">
-                    <div className="oc-circular-score">
-                        <div className="score-title">At Risk</div>
-                        <svg width="180" height="180" viewBox="0 0 180 180" style={{ marginTop: '5px' }}>
-                            {/* Background gray circle */}
-                            <circle cx="90" cy="90" r="80" fill="none" stroke="#D9D9D9" strokeWidth="14" />
-                            {/* Blue progress circle - 87% filled */}
-                            <circle cx="90" cy="90" r="80" fill="none" stroke="#689EC2" strokeWidth="14"
-                                strokeDasharray="502" strokeDashoffset="65" transform="rotate(-90 90 90)" strokeLinecap="round" />
-                            {/* Large score number */}
-                            <text x="90" y="82" text-anchor="middle" fontSize="48" fontWeight="700" fill="#1B5B7E">87</text>
-                            {/* Score fraction */}
-                            <text x="90" y="108" text-anchor="middle" fontSize="22" fontWeight="600" fill="#1B5B7E">87/100</text>
-                            {/* Trend indicator with green text */}
-                            <text x="90" y="128" text-anchor="middle" fontSize="10" fill="#16A34A">
-                                <tspan>+1.5%</tspan>
-                                <tspan dx="3">In Compliance</tspan>
-                            </text>
-                            {/* Compliance Score label */}
-                            <text x="90" y="145" text-anchor="middle" fontSize="10" fill="#073356" fontWeight="500">Compliance Score</text>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', height: '100%', width: '100%', padding: '8px 5px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '11px', color: '#111827' }}>At Risk</div>
+
+                        <svg width="150" height="100" viewBox="0 0 180 130">
+                            {/* Gauge Background Arc */}
+                            <path
+                                d="M 20 95 A 70 70 0 0 1 160 95"
+                                fill="none"
+                                stroke="#E5E7EB"
+                                strokeWidth="12"
+                                strokeLinecap="round"
+                            />
+                            {/* Gauge Progress Arc - 87% progress */}
+                            <path
+                                d="M 20 95 A 70 70 0 0 1 153 62"
+                                fill="none"
+                                stroke="#689EC2"
+                                strokeWidth="15"
+                                strokeLinecap="round"
+                            />
+
+                            {/* Score Number */}
+                            <text x="90" y="60" textAnchor="middle" fontSize="32" fontWeight="700" fill="#1B5B7E">87</text>
+
+                            {/* Compliance Score Label */}
+                            <text x="90" y="75" textAnchor="middle" fontSize="8" fontWeight="500" fill="#1B5B7E">Compliance Score</text>
+
+                            {/* Score Fraction with Trend */}
+                            <text x="90" y="92" textAnchor="middle" fontSize="15" fontWeight="700" fill="#1B5B7E">87/100</text>
+
+                            {/* Green Trend Arrow and Value - positioned to the right of 87/100 */}
+                            <polygon points="123,87 127,82 131,87" fill="#16A34A" />
+                            <text x="135" y="90" fontSize="10" fontWeight="700" fill="#16A34A">1.5</text>
+
+                            {/* Scale Labels - outside the arc at bottom */}
+                            <text x="15" y="115" textAnchor="start" fontSize="7" fontWeight="400" fill="#6B7280">non-compliance</text>
+                            <text x="165" y="115" textAnchor="end" fontSize="7" fontWeight="400" fill="#6B7280">In Compliance</text>
                         </svg>
-                        <div className="score-details">Chlorine: 0.05 mg/L, PFAS: 0.01 ng/L</div>
+
+                        <div style={{ fontSize: '9px', color: '#1B5B7E', fontWeight: 500, textAlign: 'center' }}>
+                            Chlorine: 0.85 mg/L, PFAS: 0.01 ng/L
+                        </div>
                     </div>
                 </div>
             </div>
@@ -599,10 +623,15 @@ const OperationsCompliance = () => {
                                 },
                             }}
                         />
+                        <div className="oc-gauge-arc-value">7,520</div>
                         <div className="oc-gauge-text-container">
+                            <div className="oc-gauge-label">Tests Completed</div>
                             <div className="oc-gauge-value">7520</div>
                             <div className="oc-gauge-subtext">83.5% of Annual Target</div>
-                            <div className="oc-gauge-target">Target: 9,000</div>
+                        </div>
+                        <div className="oc-gauge-scale">
+                            <span className="oc-gauge-min">0</span>
+                            <span className="oc-gauge-max">9,000</span>
                         </div>
                     </div>
                 </div>
@@ -630,11 +659,17 @@ const OperationsCompliance = () => {
                                 },
                             }}
                         />
+                        <div className="oc-gauge-arc-value">38</div>
                         <div className="oc-gauge-text-container">
+                            <div className="oc-gauge-label">Exceedances Detected</div>
                             <div className="oc-gauge-value">38</div>
                             <div className="oc-gauge-subtext">Threshold: &lt;50 per year</div>
-                            <div className="oc-gauge-footer">Based on regulatory and internal safety thresholds</div>
                         </div>
+                        <div className="oc-gauge-scale">
+                            <span className="oc-gauge-min">0</span>
+                            <span className="oc-gauge-max">&lt;50</span>
+                        </div>
+                        <div className="oc-gauge-footer">Based on regulatory and internal safety thresholds</div>
                     </div>
                 </div>
 
