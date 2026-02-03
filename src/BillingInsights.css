@@ -335,9 +335,9 @@
 
 .label-res {
     color: #1E4A79;
-    left: -35px;
+    left: -45px;
     /* Far left */
-    bottom: 25px;
+    bottom: 5px;
     text-align: right;
 }
 
@@ -823,6 +823,7 @@
     line-height: 120%;
     border: 1.2381px solid;
     box-shadow: 1.56088px 1.56088px 4.6046px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
 }
 
 .bi-status-badge.green {
@@ -984,6 +985,7 @@
     font-size: 12px;
     line-height: 120%;
     border: 1px solid;
+    white-space: nowrap;
 }
 
 .bi-prediction-badge.billable {
