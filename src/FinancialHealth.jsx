@@ -54,8 +54,9 @@ const formatMonth = (dateStr) => {
 
 // Helper function to format currency
 const formatCurrency = (value) => {
-    if (value >= 1000) return `$${(value / 1000).toFixed(1)}M`;
-    return `$${value.toFixed(2)}`;
+    if (typeof value !== 'number') return '$0.00M';
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}B`; // Handle billions if it ever gets that high
+    return `$${value.toFixed(2)}M`;
 };
 
 // Helper function to format number with commas
@@ -306,17 +307,27 @@ const FinancialHealth = () => {
                 type: 'text',
                 sql: null,
                 data: null,
-                isStreaming: true
+                isStreaming: true,
+                contextCount: aiChatHistory.length
             }]);
 
             console.log('Sending AI request:', question);
 
             // Step 1: Generate SQL
             setAiStatusMessage('Synthesizing optimized SQL query...');
+
+            // Get history excluding the turn we just added
+            const history = aiChatHistory.map(turn => ({
+                question: turn.question,
+                sql: turn.sql,
+                summary: turn.summary,
+                type: turn.type
+            }));
+
             const generateResponse = await fetch(`${API_BASE_URL}/api/v0/ai/generate-sql`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question })
+                body: JSON.stringify({ question, history })
             });
 
             if (!generateResponse.ok) {
@@ -326,18 +337,31 @@ const FinancialHealth = () => {
             const generateJson = await generateResponse.json();
             const sql = generateJson.sql || (generateJson.success && generateJson.data?.sql) || generateJson.query;
             const responseType = generateJson.type || generateJson.data?.type;
+            const textResponse = generateJson.text || generateJson.answer || (generateJson.data?.text);
+            const contextualQuestion = generateJson.contextual_question;
 
             // Update turn with SQL as soon as we have it
             updateLastTurn({
                 sql: sql || null,
-                type: responseType || (sql ? 'sql' : 'text')
+                type: responseType || (sql ? 'sql' : 'text'),
+                contextualQuestion: contextualQuestion || null
             });
 
             const isTextResponse = responseType === 'text' ||
-                (sql && (sql.includes('not allowed') || sql.includes('error') || sql.includes('LLM')));
+                responseType === 'explanation' ||
+                !sql ||
+                (sql && !/^\s*(SELECT|WITH|SHOW|DESCRIBE|EXPLAIN)/i.test(sql)) ||
+                (sql && (sql.includes('not allowed') || sql.includes('error') || sql.includes('LLM') || sql.includes('not contain a question') || sql.includes('specific question')));
 
-            if (isTextResponse && sql) {
-                updateLastTurn({ summary: sql, isStreaming: false });
+            // If no SQL is returned, or explicitly a text response, stop here and show the result
+            if (isTextResponse) {
+                const finalSummary = textResponse || sql || "I'm sorry, I couldn't generate a query for that question. Please try rephrasing your question.";
+                updateLastTurn({
+                    sql: null, // Clear SQL so it doesn't show as a code block
+                    type: 'text',
+                    summary: finalSummary,
+                    isStreaming: false
+                });
                 setAiLoading(false);
                 return;
             }
@@ -728,6 +752,14 @@ const FinancialHealth = () => {
                         }
                     }}
                 />
+
+                {aiChatHistory.length > 0 && (
+                    <div className="fh-context-badge" title="AI is using conversation history for context">
+                        <div className="fh-context-dot"></div>
+                        Context: {aiChatHistory.length} turns
+                    </div>
+                )}
+
                 <button
                     type="submit"
                     disabled={aiLoading || !aiQuestion.trim()}
@@ -1049,6 +1081,34 @@ const FinancialHealth = () => {
                                 <div className="fh-chat-message assistant">
                                     <div className="fh-chat-bubble assistant">
                                         <div style={{ width: '100%' }}>
+                                            {/* Context Understanding Box */}
+                                            {turn.contextualQuestion && (
+                                                <div style={{
+                                                    background: '#F0F7FF',
+                                                    border: '1px solid #C6E0FF',
+                                                    borderRadius: '10px',
+                                                    padding: '12px 16px',
+                                                    marginBottom: '15px',
+                                                    animation: 'fhFadeIn 0.3s ease-out'
+                                                }}>
+                                                    <div style={{
+                                                        fontSize: '13px',
+                                                        fontWeight: 700,
+                                                        color: '#1B5B7E',
+                                                        marginBottom: '6px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px'
+                                                    }}>
+                                                        <Search size={14} />
+                                                        Context Understanding:
+                                                    </div>
+                                                    <div style={{ fontSize: '14px', color: '#1B5B7E' }}>
+                                                        I understood this question as: <span style={{ fontWeight: 500 }}>{turn.contextualQuestion}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* SQL Toggle (Query - Top) */}
                                             {turn.sql && (
                                                 <details style={{ marginBottom: '15px' }}>
@@ -1111,7 +1171,13 @@ const FinancialHealth = () => {
                                                     </div>
                                                 ) : (
                                                     <div style={{ marginBottom: '15px' }}>
-                                                        {turn.summary || (turn.isStreaming && (
+                                                        {turn.summary ? (
+                                                            turn.summary.split('\n').map((line, i) => (
+                                                                <div key={i} style={{ marginBottom: i === turn.summary.split('\n').length - 1 ? '0' : '8px' }}>
+                                                                    {line}
+                                                                </div>
+                                                            ))
+                                                        ) : (turn.isStreaming && (
                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                                 <div style={{ fontSize: '11px', color: '#689EC2', fontStyle: 'italic' }}>
                                                                     {aiStatusMessage}
